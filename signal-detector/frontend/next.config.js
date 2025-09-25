@@ -6,6 +6,13 @@ const nextConfig = {
       ? `https://${process.env.VERCEL_URL}/api`
       : 'http://localhost:4000'
   },
+  webpack: (config, { isServer }) => {
+    // Exclude pg and sqlite3 from being bundled on the client side.
+    if (!isServer) {
+      config.externals.push('pg', 'sqlite3');
+    }
+    return config;
+  },
   async rewrites() {
     if (process.env.NODE_ENV === 'production') {
       return [];
