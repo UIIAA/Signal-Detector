@@ -7,7 +7,7 @@ let db;
 let dbType;
 
 // Construct the absolute path to the database file
-const dbPath = path.join("/Users/marcoscruz/Documents/Projetos/Sinal Ruido", 'shared', 'database', 'signal.db');
+const dbPath = path.resolve(__dirname, '..', '..', '..', 'shared', 'database', 'signal.db');
 
 async function getDb() {
   if (process.env.POSTGRES_URL) {
