@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)",
+      "Read(//var/folders/65/0lf7nfmj5hs5nmt95dw5jjdr0000gp/T/TemporaryItems/NSIRD_screencaptureui_ZIxDat/**)",
+      "Bash(curl:*)",
+      "Bash(npm start)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(sqlite3:*)",
+      "Read(//var/folders/65/0lf7nfmj5hs5nmt95dw5jjdr0000gp/T/TemporaryItems/NSIRD_screencaptureui_d4qCjs/**)",
+      "Read(//var/folders/65/0lf7nfmj5hs5nmt95dw5jjdr0000gp/T/TemporaryItems/NSIRD_screencaptureui_NISZKP/**)",
+      "Read(//var/folders/65/0lf7nfmj5hs5nmt95dw5jjdr0000gp/T/TemporaryItems/NSIRD_screencaptureui_NZIYkh/**)",
+      "Bash(cat:*)",
+      "Read(//Users/marcoscruz/Documents/Projetos/**)",
+      "Bash(cd:*)",
+      "Read(//var/folders/65/0lf7nfmj5hs5nmt95dw5jjdr0000gp/T/TemporaryItems/NSIRD_screencaptureui_YA7s6P/**)",
+      "Bash(time curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

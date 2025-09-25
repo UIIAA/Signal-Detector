@@ -1,0 +1,372 @@
+# **🏗️ ARQUITETURA DEFINITIVA - SIGNAL DETECTOR**
+
+## **📁 ESTRUTURA DE PASTAS**
+
+```
+signal-detector/
+│
+├── services/
+│   ├── signal-processor/          # Microserviço 1
+│   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   ├── services/
+│   │   │   │   ├── SignalClassifier.js
+│   │   │   │   └── VoiceProcessor.js
+│   │   │   ├── models/
+│   │   │   └── app.js
+│   │   ├── package.json
+│   │   └── .env
+│   │
+│   ├── accountability-engine/      # Microserviço 2
+│   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   ├── services/
+│   │   │   │   ├── PNLCoach.js
+│   │   │   │   └── PatternAnalyzer.js
+│   │   │   ├── models/
+│   │   │   └── app.js
+│   │   ├── package.json
+│   │   └── .env
+│   │
+│   └── shared/
+│       ├── database/
+│       │   ├── schema.sql
+│       │   └── signal.db            # SQLite único
+│       └── utils/
+│
+├── frontend/                       # PWA
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── services/
+│   │   └── hooks/
+│   ├── package.json
+│   └── next.config.js
+│
+└── README.md
+```
+
+---
+
+## **💾 SCHEMA SQLite UNIFICADO**
+
+```sql
+-- services/shared/database/schema.sql
+
+-- ===============================
+-- CORE TABLES
+-- ===============================
+
+CREATE TABLE users (
+  id TEXT PRIMARY KEY DEFAULT (hex(randomblob(16))),
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE goals (
+  id TEXT PRIMARY KEY DEFAULT (hex(randomblob(16))),
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  target_value REAL DEFAULT 0,
+  current_value REAL DEFAULT 0,
+  is_active BOOLEAN DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ===============================
+-- CORE FEATURE 1: SIGNAL CLASSIFICATION
+-- ===============================
+
+CREATE TABLE activities (
+  id TEXT PRIMARY KEY DEFAULT (hex(randomblob(16))),
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+  
+  -- Input Data
+  description TEXT NOT NULL,
+  duration_minutes INTEGER,
+  energy_before INTEGER CHECK (energy_before BETWEEN 1 AND 10),
+  energy_after INTEGER CHECK (energy_after BETWEEN 1 AND 10),
+  
+  -- CORE: Signal Classification
+  signal_score INTEGER CHECK (signal_score BETWEEN 0 AND 100),
+  classification TEXT CHECK (classification IN ('SINAL', 'RUÍDO', 'NEUTRO')),
+  confidence_score REAL CHECK (confidence_score BETWEEN 0 AND 1),
+  reasoning TEXT,
+  classification_method TEXT, -- 'rules', 'ai', 'manual'
+  
+  -- Voice Support
+  voice_file_path TEXT,
+  transcription TEXT,
+  
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ===============================
+-- CORE FEATURE 2: ACCOUNTABILITY COACHING
+-- ===============================
+
+CREATE TABLE coaching_sessions (
+  id TEXT PRIMARY KEY DEFAULT (hex(randomblob(16))),
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+  
+  -- PNL Coaching Core
+  nlp_technique TEXT NOT NULL, -- 'modal_operator_challenge', 'generalization_challenge', etc
+  coaching_question TEXT NOT NULL,
+  user_response TEXT,
+  
+  -- Outcomes
+  insights_generated TEXT, -- JSON array como string
+  breakthrough_detected BOOLEAN DEFAULT 0,
+  user_satisfaction INTEGER CHECK (user_satisfaction BETWEEN 1 AND 10),
+  
+  -- Follow-up
+  next_session_recommended DATETIME,
+  
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ===============================
+-- PATTERN DETECTION (Support)
+-- ===============================
+
+CREATE TABLE user_patterns (
+  id TEXT PRIMARY KEY DEFAULT (hex(randomblob(16))),
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+  
+  pattern_type TEXT, -- 'procrastination', 'perfectionism', 'scattered_focus'
+  confidence_score REAL CHECK (confidence_score BETWEEN 0 AND 1),
+  detected_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  
+  -- Supporting data as JSON string
+  supporting_data TEXT
+);
+
+-- ===============================
+-- ANALYTICS CACHE
+-- ===============================
+
+CREATE TABLE analytics_cache (
+  id TEXT PRIMARY KEY DEFAULT (hex(randomblob(16))),
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+  
+  cache_key TEXT NOT NULL,
+  cache_data TEXT NOT NULL, -- JSON string
+  expires_at DATETIME NOT NULL,
+  
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ===============================
+-- INDEXES FOR PERFORMANCE
+-- ===============================
+
+CREATE INDEX idx_activities_user_date ON activities(user_id, created_at DESC);
+CREATE INDEX idx_activities_signal_score ON activities(user_id, signal_score DESC);
+CREATE INDEX idx_coaching_sessions_user ON coaching_sessions(user_id, created_at DESC);
+CREATE INDEX idx_user_patterns_type ON user_patterns(user_id, pattern_type);
+CREATE INDEX idx_analytics_cache_key ON analytics_cache(user_id, cache_key);
+```
+
+---
+
+## **🧠 JEITO DE PENSAR DEFINITIVO**
+
+### **1. Signal Processor (Porto 4000)**
+```javascript
+// services/signal-processor/src/services/SignalClassifier.js
+
+class SignalClassifier {
+  
+  // LAYER 1: Regras baseadas em primeiros princípios
+  classifyByRules(activity) {
+    let score = 50; // Neutro
+    let reasoning = [];
+
+    // REGRA 1: Avança objetivos específicos? (+30)
+    if (this.advancesGoals(activity)) {
+      score += 30;
+      reasoning.push("Avança objetivos específicos");
+    }
+
+    // REGRA 2: Energia crescente? (+20) 
+    if (activity.energyAfter > activity.energyBefore) {
+      score += 20;
+      reasoning.push("Aumentou energia");
+    }
+
+    // REGRA 3: Alto impacto, baixo tempo? (+20)
+    if (activity.duration < 60 && this.isHighImpact(activity)) {
+      score += 20;
+      reasoning.push("Alto leverage");
+    }
+
+    // REGRA 4: Atividades de ruído conhecidas (-40)
+    if (this.isKnownDistraction(activity)) {
+      score -= 40;
+      reasoning.push("Distração identificada");
+    }
+
+    return {
+      score: Math.max(0, Math.min(100, score)),
+      classification: score > 70 ? 'SINAL' : score < 40 ? 'RUÍDO' : 'NEUTRO',
+      confidence: reasoning.length > 2 ? 0.8 : 0.5,
+      reasoning: reasoning.join('; '),
+      method: 'rules'
+    };
+  }
+
+  // LAYER 2: OpenAI para casos duvidosos
+  async classifyWithAI(activity) {
+    const prompt = `
+    Classifique como SINAL (avança objetivos) ou RUÍDO (distração):
+    
+    Atividade: "${activity.description}"
+    Duração: ${activity.duration}min
+    Energia: ${activity.energyBefore} → ${activity.energyAfter}
+    
+    Responda JSON: {"score": 0-100, "reasoning": "explicação breve"}
+    `;
+
+    // Implementar chamada OpenAI
+    const response = await this.openai.complete(prompt);
+    return JSON.parse(response);
+  }
+}
+```
+
+### **2. Accountability Engine (Porto 5000)**
+```javascript
+// services/accountability-engine/src/services/PNLCoach.js
+
+class PNLCoach {
+  
+  generateCoachingQuestion(userPatterns) {
+    // Detecta padrão dominante
+    const dominantPattern = this.identifyDominantPattern(userPatterns);
+    
+    // Seleciona técnica PNL
+    const nlpTechnique = this.selectNLPTechnique(dominantPattern);
+    
+    // Gera pergunta personalizada
+    const question = this.craftQuestion(nlpTechnique, userPatterns);
+    
+    return {
+      nlpTechnique,
+      question,
+      expectedOutcome: this.predictOutcome(nlpTechnique)
+    };
+  }
+
+  selectNLPTechnique(pattern) {
+    const techniqueMap = {
+      'procrastination': 'modal_operator_challenge', // "não posso" → "o que aconteceria se..."
+      'perfectionism': 'generalization_challenge',   // "sempre" → "sempre mesmo?"
+      'scattered_focus': 'outcome_specification',    // "qual exatamente o resultado?"
+      'self_sabotage': 'deletion_challenge'          // "o que você está omitindo?"
+    };
+    
+    return techniqueMap[pattern] || 'open_inquiry';
+  }
+
+  craftQuestion(technique, userPatterns) {
+    const templates = {
+      modal_operator_challenge: [
+        "O que especificamente te impede de {goal}?",
+        "O que aconteceria se você realmente {action}?",
+        "Quem disse que você deve {pattern}?"
+      ],
+      generalization_challenge: [
+        "Sempre procrastina em {area}? Alguma exceção?",
+        "Nunca consegue {behavior}? Houve algum período que funcionou?"
+      ],
+      outcome_specification: [
+        "Qual especificamente seria o resultado ideal?",
+        "Como você saberia que alcançou sucesso?"
+      ]
+    };
+
+    // Personalizar com dados do usuário
+    return this.personalizeTemplate(templates[technique], userPatterns);
+  }
+}
+```
+
+### **3. Analytics Essenciais**
+```javascript
+// Insights acionáveis (não apenas números)
+class AdvancedAnalytics {
+  
+  generateInsights(userId) {
+    return {
+      // Padrões temporais
+      bestProductiveHours: "Você é 73% mais produtivo às 9h",
+      worstProductiveHours: "Evite tarefas complexas às 15h",
+      
+      // Correlações energia x atividade
+      energyPatterns: "Exercício aumenta signal score em 25%",
+      
+      // Otimizações de agenda
+      recommendations: [
+        "Mover 'Review código' para 10h (+15 pontos)",
+        "Reduzir reuniões > 60min (-40% ruído)"
+      ],
+      
+      // Previsões comportamentais
+      predictions: "80% chance de procrastinar esta tarde"
+    };
+  }
+}
+```
+
+---
+
+## **🚀 COMANDOS DE INICIALIZAÇÃO**
+
+```bash
+# Terminal 1 - Signal Processor
+cd services/signal-processor
+npm install
+npm start # Porta 4000
+
+# Terminal 2 - Accountability Engine  
+cd services/accountability-engine
+npm install
+npm start # Porta 5000
+
+# Terminal 3 - Frontend
+cd frontend
+npm install
+npm run dev # Porta 3000
+```
+
+---
+
+## **🎯 PRIORIDADES DE DESENVOLVIMENTO**
+
+### **SEMANA 1:**
+1. Setup básico dos 3 services
+2. SQLite + schema implementado
+3. SignalClassifier com regras hardcoded
+4. Voice recording no frontend
+
+### **SEMANA 2:**
+1. PNL Coach com templates básicos
+2. OpenAI integration para casos duvidosos
+3. Dashboard com analytics simples
+4. Pipeline voice → transcription → activity
+
+### **SEMANA 3:**
+1. Pattern detection automático
+2. Coaching sessions automatizadas
+3. Analytics avançados (insights)
+4. PWA features (offline, notifications)
+
+### **SEMANA 4:**
+1. Fine-tuning com dados reais
+2. Deploy production
+3. Feedback loop e iteração
+4. Preparação para uso pessoal
+
+**FOCO: Features core funcionando perfeitamente antes de qualquer feature secundária.**

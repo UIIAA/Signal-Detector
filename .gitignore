@@ -1,0 +1,22 @@
+
+# Dependencies
+/node_modules
+/signal-detector/frontend/node_modules
+/signal-detector/services/accountability-engine/node_modules
+/signal-detector/services/signal-processor/node_modules
+
+# Build artifacts
+/signal-detector/frontend/.next
+
+# Env files
+.env
+/signal-detector/frontend/.env
+/signal-detector/services/accountability-engine/.env
+/signal-detector/services/signal-processor/.env
+
+# Databases
+*.db
+*.db-journal
+
+# OS-specific
+.DS_Store
