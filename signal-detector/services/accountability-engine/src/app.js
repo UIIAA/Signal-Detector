@@ -5,7 +5,7 @@ const PatternAnalyzer = require('./services/PatternAnalyzer');
 const PNLCoach = require('./services/PNLCoach');
 
 const app = express();
-const port = 5000;
+const port = 5001;
 
 const patternAnalyzer = new PatternAnalyzer();
 const pnlCoach = new PNLCoach();
@@ -59,7 +59,7 @@ app.post('/generate-coaching-session', async (req, res) => {
 
     res.json({ coachingQuestion });
   } catch (error) {
-    console.error(err.message);
+    console.error(error.message);
     return res.status(500).json({ error: 'Error generating coaching session' });
   }
 });
