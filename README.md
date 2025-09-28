@@ -26,3 +26,45 @@ Para fazer o deploy da sua aplicação na Vercel, você precisa configurar um ba
    - Cole o conteúdo no console de query da Vercel e execute.
 
 Após seguir esses passos, seu banco de dados estará pronto e a aplicação deverá funcionar corretamente em produção. O build na Vercel não deve mais apresentar os erros relacionados ao banco de dados.
+
+---
+
+## 🚀 Novas Funcionalidades Implementadas
+
+### ✨ Matriz de Alavancagem
+- **Visualização interativa** das atividades baseada em impacto vs. esforço
+- **Quadrantes inteligentes** para análise de produtividade:
+  - 🟢 **Alta Alavancagem**: Alto impacto, baixo esforço
+  - 🔵 **Projetos Estratégicos**: Alto impacto, alto esforço
+  - 🟡 **Distrações**: Baixo impacto, baixo esforço
+  - 🔴 **Drenos de Energia**: Baixo impacto, alto esforço
+- **Tooltips detalhados** ao passar o mouse sobre as atividades
+- **Tamanho das bolhas** representa a duração da atividade
+
+### 📊 Dashboard Aprimorado
+- **Estados de carregamento melhorados** com mensagens apropriadas
+- **Analytics em tempo real** com dados de produtividade
+- **Matriz de alavancagem integrada** para análise visual
+- **Carregamento otimizado** para melhor experiência do usuário
+
+### 🛠️ Melhorias Técnicas
+- **Campos impact e effort** adicionados à tabela de atividades
+- **APIs atualizadas** para incluir dados de impacto e esforço
+- **Schema do banco expandido** para suportar análise de alavancagem
+- **Componentes reutilizáveis** para tooltips e visualizações
+
+### 🔧 Correções de Bugs
+- ✅ **Tooltip da matriz** agora exibe informações corretas
+- ✅ **Estados de loading** mostram mensagens apropriadas
+- ✅ **APIs de atividades** retornam dados completos
+- ✅ **Dashboard** atualiza corretamente após adicionar atividades
+
+---
+
+## 📈 Como Usar a Matriz de Alavancagem
+
+1. **Registre atividades** com valores de impacto e esforço (escala 1-10)
+2. **Acesse o dashboard** para visualizar a matriz
+3. **Analise os quadrantes** para identificar padrões de produtividade
+4. **Passe o mouse** sobre as atividades para ver detalhes
+5. **Foque em atividades** do quadrante "Alta Alavancagem" para máxima eficiência
