@@ -80,8 +80,8 @@ export default async function handler(req, res) {
     }
 
     await query(`INSERT INTO activities
-      (id, user_id, description, duration_minutes, energy_before, energy_after, signal_score, classification, confidence_score, reasoning, classification_method, transcription, goal_id)
-      VALUES (encode(gen_random_bytes(16), 'hex'), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      (id, user_id, description, duration_minutes, energy_before, energy_after, signal_score, classification, confidence_score, reasoning, classification_method, transcription, goal_id, impact, effort)
+      VALUES (encode(gen_random_bytes(16), 'hex'), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         'default-user',
         activity.description,
@@ -94,7 +94,9 @@ export default async function handler(req, res) {
         finalResult.reasoning,
         finalResult.method,
         '',
-        activity.goalId
+        activity.goalId,
+        activity.impact,
+        activity.effort
       ]
     );
 

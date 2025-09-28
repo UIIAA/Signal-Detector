@@ -80,6 +80,7 @@ export default function Dashboard() {
   const [timeframe, setTimeframe] = useState('week');
   const [recentActivities, setRecentActivities] = useState([]);
   const [progressLoading, setProgressLoading] = useState(false);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
 
   // Initial data load - only once on mount
   useEffect(() => {
@@ -132,6 +133,7 @@ export default function Dashboard() {
         } else {
           console.error('Error fetching recent activities:', activitiesResult.reason);
         }
+        setActivitiesLoading(false);
 
       } catch (error) {
         setError('Erro ao carregar os dados do dashboard');
@@ -651,7 +653,7 @@ export default function Dashboard() {
             {/* Recent Activities */}
             <RecentActivities
               activities={recentActivities}
-              loading={loading}
+              loading={activitiesLoading}
               title="Atividades Recentes"
             />
 

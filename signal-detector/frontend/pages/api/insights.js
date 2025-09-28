@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   try {
     let activityQuery = 'SELECT * FROM activities WHERE user_id = $1';
     let activityParams = [userId];
-    let keyActivityQuery = 'SELECT * FROM key_activities WHERE goal_id IN (SELECT id FROM goals WHERE user_id = $1)';
+    let keyActivityQuery = 'SELECT ka.*, a.goal_id FROM key_activities ka JOIN activities a ON ka.activity_id = a.id WHERE a.goal_id IN (SELECT id FROM goals WHERE user_id = $1)';
     let keyActivityParams = [userId];
 
     if (goalIds && goalIds.length > 0) {
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       activityParams = [userId, ...goalIds];
 
       const keyActivityPlaceholders = goalIds.map((_, i) => `$${i + 1}`).join(',');
-      keyActivityQuery = `SELECT * FROM key_activities WHERE goal_id IN (${keyActivityPlaceholders})`;
+      keyActivityQuery = `SELECT ka.*, a.goal_id FROM key_activities ka JOIN activities a ON ka.activity_id = a.id WHERE a.goal_id IN (${keyActivityPlaceholders})`;
       keyActivityParams = goalIds;
     }
 

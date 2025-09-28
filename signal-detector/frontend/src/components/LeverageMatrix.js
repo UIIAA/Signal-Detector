@@ -17,10 +17,14 @@ import { Card, CardContent, Typography, Box } from '@mui/material';
 const LeverageMatrix = ({ activities }) => {
   // Prepare data for the chart
   const data = activities.map(activity => ({
-    x: activity.effort,
-    y: activity.impact,
-    z: activity.duration_minutes, // Bubble size represents duration
-    name: activity.description
+    x: activity.effort || 5,
+    y: activity.impact || 5,
+    z: activity.duration_minutes || activity.duration || 60, // Bubble size represents duration
+    name: activity.description,
+    description: activity.description,
+    impact: activity.impact || 5,
+    effort: activity.effort || 5,
+    duration: activity.duration_minutes || activity.duration || 0
   }));
 
   return (
@@ -67,7 +71,15 @@ const LeverageMatrix = ({ activities }) => {
 
               <ZAxis type="number" dataKey="z" name="Duração (min)" range={[100, 1000]} />
 
-              <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+              <Tooltip
+                cursor={{ strokeDasharray: '3 3' }}
+                content={<CustomTooltip />}
+                wrapperStyle={{ zIndex: 1000 }}
+                allowEscapeViewBox={{ x: true, y: true }}
+              />
+
+              {/* Fallback: Default Tooltip for testing */}
+              {/* <Tooltip cursor={{ strokeDasharray: '3 3' }} /> */}
               
               <Legend verticalAlign="top" height={36}/>
 
@@ -81,15 +93,33 @@ const LeverageMatrix = ({ activities }) => {
   );
 };
 
-const CustomTooltip = ({ active, payload }) => {
+const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+
     return (
-      <div style={{ backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
-        <p style={{ fontWeight: 'bold', margin: 0 }}>{data.name}</p>
-        <p style={{ margin: '5px 0 0 0' }}>Impacto: {data.y}</p>
-        <p style={{ margin: '5px 0 0 0' }}>Esforço: {data.x}</p>
-        <p style={{ margin: '5px 0 0 0' }}>Duração: {data.z} min</p>
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        padding: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        maxWidth: '250px',
+        fontSize: '14px',
+        fontFamily: 'Roboto, Arial, sans-serif'
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#333' }}>
+          {data.description || data.name || 'Atividade'}
+        </div>
+        <div style={{ marginBottom: '4px', color: '#555' }}>
+          <strong>Impacto:</strong> {data.impact || data.y || 'N/A'}/10
+        </div>
+        <div style={{ marginBottom: '4px', color: '#555' }}>
+          <strong>Esforço:</strong> {data.effort || data.x || 'N/A'}/10
+        </div>
+        <div style={{ color: '#555' }}>
+          <strong>Duração:</strong> {data.duration || data.z || 0} min
+        </div>
       </div>
     );
   }

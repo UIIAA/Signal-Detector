@@ -10,8 +10,8 @@ export default async function handler(req, res) {
   try {
     const { dbType } = await getDb();
 
-    const groupConcat = dbType === 'postgres' ? 'STRING_AGG(g.id::text, ",")' : 'GROUP_CONCAT(g.id)';
-    const groupConcatTitles = dbType === 'postgres' ? 'STRING_AGG(g.title, ",")' : 'GROUP_CONCAT(g.title)';
+    const groupConcat = dbType === 'postgres' ? 'STRING_AGG(g.id::text, \',\')' : 'GROUP_CONCAT(g.id)';
+    const groupConcatTitles = dbType === 'postgres' ? 'STRING_AGG(g.title, \',\')' : 'GROUP_CONCAT(g.title)';
 
     const activitiesQuery = `
       SELECT
@@ -21,6 +21,8 @@ export default async function handler(req, res) {
         a.signal_score,
         a.created_at,
         a.duration_minutes,
+        a.impact,
+        a.effort,
         ${groupConcat} as goal_ids,
         ${groupConcatTitles} as goal_titles,
         COUNT(g.id) as goals_count
@@ -42,6 +44,9 @@ export default async function handler(req, res) {
       score: row.signal_score,
       createdAt: row.created_at,
       duration: row.duration_minutes,
+      duration_minutes: row.duration_minutes,
+      impact: row.impact,
+      effort: row.effort,
       connectedGoals: row.goal_ids ? row.goal_ids.split(',').map((id, index) => ({
         id,
         title: row.goal_titles.split(',')[index]
