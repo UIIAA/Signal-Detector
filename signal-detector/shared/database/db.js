@@ -53,24 +53,21 @@ async function initializeDatabase() {
 }
 
 async function getDb() {
-  // Production environment (Vercel) requires PostgreSQL
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.POSTGRES_URL) {
-      throw new Error("POSTGRES_URL environment variable is not set in production. PostgreSQL is required.");
-    }
+  // Use PostgreSQL if POSTGRES_URL is defined (production or development)
+  if (process.env.POSTGRES_URL) {
     if (!db) {
       db = new Pool({
         connectionString: process.env.POSTGRES_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        ssl: { rejectUnauthorized: false } // Always use SSL for Neon
       });
       dbType = 'postgres';
-      console.log('Connected to the PostgreSQL database.');
+      console.log('Connected to the PostgreSQL database (Neon).');
 
       // Initialize database schema
       await initializeDatabase();
     }
   } else {
-    // Development environment fallback to SQLite
+    // Fallback to SQLite when no POSTGRES_URL is set
     if (!db) {
       const dbPath = path.resolve(__dirname, 'signal.db');
       const dbDir = path.dirname(dbPath);
