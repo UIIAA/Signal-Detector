@@ -1,4 +1,4 @@
-import { query } from '../../../shared/database/db';
+import { query } from '../../../../shared/database/db';
 import crypto from 'crypto';
 
 export default async function handler(req, res) {
@@ -20,7 +20,8 @@ export default async function handler(req, res) {
       const { rows } = await query('SELECT * FROM goals WHERE id = $1', [goalId]);
       res.json(rows[0]);
     } catch (error) {
-      console.error(error.message);
+      console.error('Goal creation error:', error.message);
+      console.error('Full error:', error);
       res.status(500).json({ error: 'Error creating goal' });
     }
   } else if (req.method === 'PUT') {

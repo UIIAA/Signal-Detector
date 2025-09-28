@@ -1,4 +1,4 @@
-import { query, getDb } from '../../../shared/database/db';
+import { query, getDb } from '../../../../shared/database/db';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../src/components/Header';
+import { api } from '../src/services/api';
+import { LoadingButton, AIClassificationLoading, ErrorDisplay } from '../src/components/LoadingStates';
+import ActivityGoalConnection from '../src/components/ActivityGoalConnection';
 import {
   Container,
   Typography,
