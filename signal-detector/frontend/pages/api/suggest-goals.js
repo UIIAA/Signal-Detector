@@ -11,6 +11,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Activity description is required' });
   }
 
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
   try {
     // Buscar objetivos do usuário que não estão selecionados
     const excludeIds = selectedGoalIds && selectedGoalIds.length > 0
@@ -21,7 +25,7 @@ export default async function handler(req, res) {
       ? `AND id NOT IN (${excludeIds})`
       : '';
 
-    const queryParams = [userId || 'default-user'];
+    const queryParams = [userId];
     if (selectedGoalIds && selectedGoalIds.length > 0) {
       queryParams.push(...selectedGoalIds);
     }

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Header from '../src/components/Header';
+import ProtectedRoute from '../src/components/ProtectedRoute';
+import { useAuth } from '../src/contexts/AuthContext';
 import {
   Container,
   Typography,
@@ -35,6 +37,7 @@ import { LoadingButton, AudioRecordingLoading, AIClassificationLoading, ErrorDis
 import ActivityGoalConnection from '../src/components/ActivityGoalConnection';
 
 export default function Record() {
+  const { user } = useAuth();
   const { recording, audioURL, startRecording, stopRecording, resetRecording } = useAudioRecorder();
   const [transcription, setTranscription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -148,7 +151,8 @@ export default function Record() {
           duration: activityData.duration,
           energyBefore: activityData.energyBefore,
           energyAfter: activityData.energyAfter,
-          goalId: null // For voice recordings, we don't pre-select goals
+          goalId: null, // For voice recordings, we don't pre-select goals
+          userId: user?.id
         }),
       });
 
@@ -189,8 +193,9 @@ export default function Record() {
   };
 
   return (
-    <div>
-      <Header />
+    <ProtectedRoute>
+      <div>
+        <Header />
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Gravar Atividade
@@ -535,13 +540,15 @@ export default function Record() {
             onNavigateToGoal={(goalId) => window.location.href = `/goals?highlight=${goalId}`}
             onUpdateProgress={async (goalId, newProgress) => {
               try {
+                const user = JSON.parse(localStorage.getItem('signalRuidoUser') || '{}');
                 await fetch('/api/goals/progress', {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     goalId,
                     progressPercentage: newProgress,
-                    updateReason: 'activity'
+                    updateReason: 'activity',
+                    userId: user.id
                   })
                 });
               } catch (error) {
@@ -569,5 +576,6 @@ export default function Record() {
         }
       `}</style>
     </div>
+    </ProtectedRoute>
   );
 }

@@ -14,7 +14,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    // Try with the newest model first, fallback to older model if overloaded
+    let model;
+    let modelName = "gemini-2.5-flash";
+
+    try {
+      model = genAI.getGenerativeModel({ model: modelName });
+    } catch (modelError) {
+      console.log('Falling back to gemini-2.0-flash');
+      modelName = "gemini-2.0-flash";
+      model = genAI.getGenerativeModel({ model: modelName });
+    }
 
     const prompt = `
 Como um especialista em definição de objetivos e produtividade, analise o perfil abaixo e forneça sugestões SMART personalizadas:
@@ -52,7 +62,31 @@ Responda APENAS em formato JSON válido:
 }
 `;
 
-    const result = await model.generateContent(prompt);
+    // Try with retry logic for overloaded models
+    let result;
+    let attempts = 0;
+    const maxAttempts = 2;
+
+    while (attempts < maxAttempts) {
+      try {
+        result = await model.generateContent(prompt);
+        break; // Success, exit retry loop
+      } catch (apiError) {
+        attempts++;
+        console.log(`Attempt ${attempts} failed:`, apiError.message);
+
+        if (apiError.message.includes('overloaded') && attempts < maxAttempts) {
+          // Try with older model
+          console.log('Retrying with gemini-2.0-flash...');
+          model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+          modelName = "gemini-2.0-flash";
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        } else {
+          throw apiError; // Re-throw if not overloaded or max attempts reached
+        }
+      }
+    }
+
     const response = await result.response;
     let text = response.text();
 
@@ -63,49 +97,165 @@ Responda APENAS em formato JSON válido:
       const aiSuggestions = JSON.parse(text);
       res.json(aiSuggestions);
     } catch (parseError) {
-      // If JSON parsing fails, provide fallback response
+      // If JSON parsing fails, provide personalized fallback response
       console.error('Error parsing AI response:', parseError);
-      res.json({
-        shortTerm: [
-          "Definir cronograma detalhado das primeiras etapas",
-          "Identificar recursos necessários imediatamente",
-          "Estabelecer métricas de progresso semanais"
-        ],
-        mediumTerm: [
-          "Desenvolver competências específicas necessárias",
-          "Construir rede de contatos na área",
-          "Implementar sistema de acompanhamento de progresso"
-        ],
-        longTerm: [
-          "Estabelecer posição de referência no campo escolhido",
-          "Criar estratégia de crescimento sustentável",
-          "Desenvolver capacidade de mentoria para outros"
-        ],
-        insights: "Baseado no contexto fornecido, recomendo focar inicialmente em objetivos de curto prazo bem definidos que criem momentum para as metas maiores.",
-        timeline: "Sugiro uma abordagem em fases: 3 meses para estabelecer bases, 12 meses para consolidar competências e 3+ anos para alcançar posição de destaque."
-      });
+      console.log('Raw AI response:', text);
+
+      // Use the same personalized fallback logic
+      const generatePersonalizedFallback = () => {
+        const contextLower = context.toLowerCase();
+        const goalsLower = goals.toLowerCase();
+
+        let shortTerm = [];
+        let mediumTerm = [];
+        let longTerm = [];
+
+        // Analyze context and goals to provide better suggestions
+        if (contextLower.includes('desenvolv') || contextLower.includes('programm') || contextLower.includes('tech')) {
+          shortTerm = [
+            "Estudar tecnologias específicas relacionadas aos seus objetivos",
+            "Criar primeiro projeto prático aplicando novos conhecimentos",
+            "Estabelecer rotina diária de estudos de 1-2 horas"
+          ];
+          mediumTerm = [
+            "Desenvolver portfólio com 3-5 projetos completos",
+            "Participar de comunidades e eventos da área",
+            "Aplicar conhecimentos em projeto real ou trabalho"
+          ];
+          longTerm = [
+            "Tornar-se referência na tecnologia escolhida",
+            "Contribuir para projetos open source relevantes",
+            "Mentorear outros desenvolvedores iniciantes"
+          ];
+        } else if (contextLower.includes('negóc') || contextLower.includes('empreend') || contextLower.includes('empresa')) {
+          shortTerm = [
+            "Validar ideia de negócio com pesquisa de mercado",
+            "Desenvolver MVP (produto mínimo viável)",
+            "Definir modelo de negócio e estratégia inicial"
+          ];
+          mediumTerm = [
+            "Conseguir primeiros clientes e validar produto",
+            "Estabelecer processos operacionais essenciais",
+            "Formar equipe inicial se necessário"
+          ];
+          longTerm = [
+            "Escalar negócio para mercados maiores",
+            "Desenvolver novas linhas de produto/serviço",
+            "Estabelecer marca reconhecida no mercado"
+          ];
+        } else {
+          // Generic but still contextual fallback
+          const goal = goalsLower.slice(0, 50);
+          shortTerm = [
+            `Definir plano detalhado para: ${goal}`,
+            "Identificar recursos e conhecimentos necessários",
+            "Estabelecer marcos de progresso mensais"
+          ];
+          mediumTerm = [
+            "Desenvolver competências específicas identificadas",
+            "Construir rede de contatos relevante",
+            "Implementar e ajustar estratégia conforme progresso"
+          ];
+          longTerm = [
+            "Alcançar posição de destaque na área escolhida",
+            "Expandir influência e impacto dos seus objetivos",
+            "Ajudar outros a alcançarem objetivos similares"
+          ];
+        }
+
+        return {
+          shortTerm,
+          mediumTerm,
+          longTerm,
+          insights: `Com base no seu contexto (${context.slice(0, 100)}...) e objetivos (${goals.slice(0, 100)}...), recomendo uma abordagem gradual focando primeiro em estabelecer bases sólidas.`,
+          timeline: timeframe === 'urgent'
+            ? "Dado o prazo urgente, focar em resultados rápidos nos próximos 3-6 meses."
+            : timeframe === 'short'
+            ? "Cronograma de 6-12 meses permite desenvolvimento consistente."
+            : "Abordagem de longo prazo permite construir fundações sólidas."
+        };
+      };
+
+      res.json(generatePersonalizedFallback());
     }
   } catch (error) {
     console.error('Error generating goal suggestions:', error);
-    // Provide fallback response in case of API error
-    res.json({
-      shortTerm: [
-        "Definir cronograma detalhado das primeiras etapas",
-        "Identificar recursos necessários imediatamente",
-        "Estabelecer métricas de progresso semanais"
-      ],
-      mediumTerm: [
-        "Desenvolver competências específicas necessárias",
-        "Construir rede de contatos na área",
-        "Implementar sistema de acompanhamento de progresso"
-      ],
-      longTerm: [
-        "Estabelecer posição de referência no campo escolhido",
-        "Criar estratégia de crescimento sustentável",
-        "Desenvolver capacidade de mentoria para outros"
-      ],
-      insights: "Baseado no contexto fornecido, recomendo focar inicialmente em objetivos de curto prazo bem definidos que criem momentum para as metas maiores.",
-      timeline: "Sugiro uma abordagem em fases: 3 meses para estabelecer bases, 12 meses para consolidar competências e 3+ anos para alcançar posição de destaque."
-    });
+
+    // Create a more personalized fallback based on user input
+    const generatePersonalizedFallback = () => {
+      const contextLower = context.toLowerCase();
+      const goalsLower = goals.toLowerCase();
+
+      let shortTerm = [];
+      let mediumTerm = [];
+      let longTerm = [];
+
+      // Analyze context and goals to provide better suggestions
+      if (contextLower.includes('desenvolv') || contextLower.includes('programm') || contextLower.includes('tech')) {
+        shortTerm = [
+          "Estudar tecnologias específicas relacionadas aos seus objetivos",
+          "Criar primeiro projeto prático aplicando novos conhecimentos",
+          "Estabelecer rotina diária de estudos de 1-2 horas"
+        ];
+        mediumTerm = [
+          "Desenvolver portfólio com 3-5 projetos completos",
+          "Participar de comunidades e eventos da área",
+          "Aplicar conhecimentos em projeto real ou trabalho"
+        ];
+        longTerm = [
+          "Tornar-se referência na tecnologia escolhida",
+          "Contribuir para projetos open source relevantes",
+          "Mentorear outros desenvolvedores iniciantes"
+        ];
+      } else if (contextLower.includes('negóc') || contextLower.includes('empreend') || contextLower.includes('empresa')) {
+        shortTerm = [
+          "Validar ideia de negócio com pesquisa de mercado",
+          "Desenvolver MVP (produto mínimo viável)",
+          "Definir modelo de negócio e estratégia inicial"
+        ];
+        mediumTerm = [
+          "Conseguir primeiros clientes e validar produto",
+          "Estabelecer processos operacionais essenciais",
+          "Formar equipe inicial se necessário"
+        ];
+        longTerm = [
+          "Escalar negócio para mercados maiores",
+          "Desenvolver novas linhas de produto/serviço",
+          "Estabelecer marca reconhecida no mercado"
+        ];
+      } else {
+        // Generic but still contextual fallback
+        const goal = goalsLower.slice(0, 50);
+        shortTerm = [
+          `Definir plano detalhado para: ${goal}`,
+          "Identificar recursos e conhecimentos necessários",
+          "Estabelecer marcos de progresso mensais"
+        ];
+        mediumTerm = [
+          "Desenvolver competências específicas identificadas",
+          "Construir rede de contatos relevante",
+          "Implementar e ajustar estratégia conforme progresso"
+        ];
+        longTerm = [
+          "Alcançar posição de destaque na área escolhida",
+          "Expandir influência e impacto dos seus objetivos",
+          "Ajudar outros a alcançarem objetivos similares"
+        ];
+      }
+
+      return {
+        shortTerm,
+        mediumTerm,
+        longTerm,
+        insights: `Com base no seu contexto (${context.slice(0, 100)}...) e objetivos (${goals.slice(0, 100)}...), recomendo uma abordagem gradual focando primeiro em estabelecer bases sólidas.`,
+        timeline: timeframe === 'urgent'
+          ? "Dado o prazo urgente, focar em resultados rápidos nos próximos 3-6 meses."
+          : timeframe === 'short'
+          ? "Cronograma de 6-12 meses permite desenvolvimento consistente."
+          : "Abordagem de longo prazo permite construir fundações sólidas."
+      };
+    };
+
+    res.json(generatePersonalizedFallback());
   }
 }

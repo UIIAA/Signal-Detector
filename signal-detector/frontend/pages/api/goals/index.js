@@ -12,6 +12,12 @@ export default async function handler(req, res) {
     const goalId = crypto.randomBytes(16).toString('hex');
 
     try {
+      // First, ensure user exists in the database
+      await query(
+        'INSERT INTO users (id, name, email, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING',
+        [userId, 'User', `${userId}@local.app`, new Date()]
+      );
+
       await query(
         'INSERT INTO goals (id, user_id, title, description, goal_type, ai_suggested) VALUES ($1, $2, $3, $4, $5, $6)',
         [goalId, userId, title, description || '', goalType, aiSuggested || false]

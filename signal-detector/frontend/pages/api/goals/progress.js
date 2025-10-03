@@ -5,10 +5,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { goalId, progressPercentage, updateReason = 'manual', activityId } = req.body;
+  const { goalId, progressPercentage, updateReason = 'manual', activityId, userId } = req.body;
 
-  if (!goalId || progressPercentage === undefined) {
-    return res.status(400).json({ error: 'goalId and progressPercentage are required' });
+  if (!goalId || progressPercentage === undefined || !userId) {
+    return res.status(400).json({ error: 'goalId, progressPercentage, and userId are required' });
   }
 
   if (progressPercentage < 0 || progressPercentage > 100) {
@@ -23,9 +23,9 @@ export default async function handler(req, res) {
             last_activity_at = CURRENT_TIMESTAMP,
             is_completed = CASE WHEN $2 >= 100 THEN 1 ELSE 0 END,
             completed_at = CASE WHEN $3 >= 100 THEN CURRENT_TIMESTAMP ELSE NULL END
-        WHERE id = $4 AND user_id = 'default-user'
+        WHERE id = $4 AND user_id = $5
       `,
-      [progressPercentage, progressPercentage, progressPercentage, goalId]
+      [progressPercentage, progressPercentage, progressPercentage, goalId, userId]
     );
 
     if (rowCount === 0) {

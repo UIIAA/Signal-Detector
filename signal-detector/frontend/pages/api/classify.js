@@ -1,17 +1,21 @@
 import { query } from '../../../shared/database/db';
-const SignalClassifier = require('../../api-backend/services/SignalClassifier');
+const SignalClassifier = require('../../../services/signal-processor/src/services/SignalClassifier');
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { description, duration, energyBefore, energyAfter, goalId, impact, effort } = req.body;
+  const { description, duration, energyBefore, energyAfter, goalId, impact, effort, userId } = req.body;
 
-  console.log('Classify API called with:', { description, duration, energyBefore, energyAfter, goalId, impact, effort });
+  console.log('Classify API called with:', { description, duration, energyBefore, energyAfter, goalId, impact, effort, userId });
 
   if (!description) {
     return res.status(400).json({ error: 'Description is required' });
+  }
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
   }
 
   try {
@@ -83,7 +87,7 @@ export default async function handler(req, res) {
       (id, user_id, description, duration_minutes, energy_before, energy_after, signal_score, classification, confidence_score, reasoning, classification_method, transcription, goal_id, impact, effort)
       VALUES (encode(gen_random_bytes(16), 'hex'), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
-        'default-user',
+        userId,
         activity.description,
         activity.duration,
         activity.energyBefore,
@@ -106,13 +110,13 @@ export default async function handler(req, res) {
         const { rows } = await query(`
             SELECT g.id, g.title, g.goal_type, g.current_value, g.target_value
             FROM goals g
-            WHERE g.user_id = 'default-user'
+            WHERE g.user_id = $1
             AND g.is_active = true
             ORDER BY
-              CASE WHEN g.id = $1 THEN 0 ELSE 1 END,
+              CASE WHEN g.id = $2 THEN 0 ELSE 1 END,
               g.current_value / GREATEST(g.target_value, 1) ASC
             LIMIT 3
-          `, [activity.goalId]);
+          `, [userId, activity.goalId]);
         connectedGoals = rows.map((goal, index) => ({
           id: goal.id,
           title: goal.title,

@@ -146,7 +146,7 @@ app.post('/insights', async (req, res) => {
 
   try {
     const { rows } = await query('SELECT * FROM activities WHERE user_id = $1', [userId]);
-    const insights = advancedAnalytics.generateInsights(rows);
+    const insights = await advancedAnalytics.generateInsights(rows);
     res.json({ insights });
   } catch (error) {
     console.error(err.message);

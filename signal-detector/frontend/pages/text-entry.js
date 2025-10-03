@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../src/components/Header';
+import ProtectedRoute from '../src/components/ProtectedRoute';
+import { useAuth } from '../src/contexts/AuthContext';
 import { api } from '../src/services/api';
 import { LoadingButton, AIClassificationLoading, ErrorDisplay } from '../src/components/LoadingStates';
 import ActivityGoalConnection from '../src/components/ActivityGoalConnection';
@@ -43,6 +45,7 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 export default function TextEntry() {
+  const { user } = useAuth();
   const [activity, setActivity] = useState({
     description: '',
     duration: '',
@@ -136,9 +139,10 @@ export default function TextEntry() {
       // In the future, we'll update the backend to handle multiple goals
       const activityForApi = {
         ...activity,
-        goalId: activity.goalIds.length > 0 ? activity.goalIds[0] : null // Use first goal for backward compatibility
+        goalId: activity.goalIds.length > 0 ? activity.goalIds[0] : null, // Use first goal for backward compatibility
+        userId: user?.id
       };
-      
+
       // Call the API to classify the activity
       const data = await api.classifyActivity(activityForApi);
       
@@ -210,8 +214,9 @@ export default function TextEntry() {
   };
 
   return (
-    <div>
-      <Header />
+    <ProtectedRoute>
+      <div>
+        <Header />
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 600 }}>
           Registrar Atividade por Texto
@@ -266,7 +271,7 @@ export default function TextEntry() {
               </Typography>
 
               <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Box display="flex" alignItems="center" sx={{ mb: 2 }}>
                     <FlagIcon sx={{ fontSize: 20, color: 'primary.main', mr: 1 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -294,66 +299,74 @@ export default function TextEntry() {
                         placeholder="Escolha um ou mais objetivos"
                       />
                     )}
-                    renderOption={(props, option, { selected }) => (
-                      <li {...props}>
-                        <Checkbox
-                          style={{ marginRight: 8 }}
-                          checked={selected}
-                        />
-                        <Chip
-                          label={option.typeName}
-                          size="small"
-                          sx={{
-                            mr: 1,
-                            fontSize: '0.7rem',
-                            color: getGoalTypeColor(option.type),
-                            borderColor: getGoalTypeColor(option.type)
-                          }}
-                          variant="outlined"
-                        />
-                        <ListItemText primary={option.text} />
-                      </li>
-                    )}
+                    renderOption={(props, option, { selected }) => {
+                      const { key, ...otherProps } = props;
+                      return (
+                        <li key={key} {...otherProps}>
+                          <Checkbox
+                            style={{ marginRight: 8 }}
+                            checked={selected}
+                          />
+                          <Chip
+                            label={option.typeName}
+                            size="small"
+                            sx={{
+                              mr: 1,
+                              fontSize: '0.7rem',
+                              color: getGoalTypeColor(option.type),
+                              borderColor: getGoalTypeColor(option.type)
+                            }}
+                            variant="outlined"
+                          />
+                          <ListItemText primary={option.text} />
+                        </li>
+                      );
+                    }}
                     renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip
-                          label={option.text}
-                          {...getTagProps({ index })}
-                          sx={{
+                      value.map((option, index) => {
+                        const { key, ...otherProps } = getTagProps({ index });
+                        return (
+                          <Chip
+                            key={key}
+                            label={option.text}
+                            {...otherProps}
+                            sx={{
                             backgroundColor: `${getGoalTypeColor(option.type)}20`,
                             color: getGoalTypeColor(option.type),
                             '.MuiChip-deleteIcon': {
                               color: getGoalTypeColor(option.type)
                             }
                           }}
-                        />
-                      ))
+                          />
+                        );
+                      })
                     }
                   />
                   
-                  {activity.goalIds.length > 0 && (
-                    <Box sx={{ mt: 2, textAlign: 'center' }}>
-                      <LoadingButton
-                        variant="outlined"
-                        startIcon={<AutoAwesomeIcon />}
-                        onClick={suggestRelatedGoals}
-                        loading={loading}
-                        sx={{
-                          borderColor: '#10b981',
-                          color: '#10b981',
-                          '&:hover': {
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            borderColor: '#10b981'
-                          }
-                        }}
-                      >
-                        Pedir sugestões de IA
-                      </LoadingButton>
-                    </Box>
-                  )}
+                  <Box sx={{ mt: 2, textAlign: 'center' }}>
+                    <LoadingButton
+                      variant="outlined"
+                      startIcon={<AutoAwesomeIcon />}
+                      onClick={suggestRelatedGoals}
+                      loading={loading}
+                      sx={{
+                        borderColor: '#10b981',
+                        color: '#10b981',
+                        '&:hover': {
+                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                          borderColor: '#10b981'
+                        }
+                      }}
+                    >
+                      Pedir sugestões de IA
+                    </LoadingButton>
+                    <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+                      A IA analisará todos os seus objetivos e correlacionará com esta atividade
+                    </Typography>
+                  </Box>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <TrendingUpIcon sx={{ fontSize: 20, color: 'success.main', mr: 1 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -375,6 +388,12 @@ export default function TextEntry() {
                       label="Impacto (1-10)"
                       onChange={handleChange('impact')}
                     >
+                      <MenuItem value={0}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <AutoAwesomeIcon sx={{ fontSize: 16, color: '#10b981', mr: 1 }} />
+                          <Typography>Não sei, verificar com IA</Typography>
+                        </Box>
+                      </MenuItem>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                         <MenuItem key={num} value={num}>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -389,7 +408,7 @@ export default function TextEntry() {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <FitnessCenterIcon sx={{ fontSize: 20, color: 'info.main', mr: 1 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -411,6 +430,12 @@ export default function TextEntry() {
                       label="Esforço (1-10)"
                       onChange={handleChange('effort')}
                     >
+                      <MenuItem value={0}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <AutoAwesomeIcon sx={{ fontSize: 16, color: '#10b981', mr: 1 }} />
+                          <Typography>Não sei, verificar com IA</Typography>
+                        </Box>
+                      </MenuItem>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                         <MenuItem key={num} value={num}>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -425,7 +450,7 @@ export default function TextEntry() {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <AccessTimeIcon sx={{ fontSize: 20, color: 'primary.main', mr: 1 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -440,27 +465,43 @@ export default function TextEntry() {
                       </IconButton>
                     </Tooltip>
                   </Box>
-                  <TextField
-                    fullWidth
-                    label="Duração em minutos"
-                    type="number"
-                    value={activity.duration}
-                    onChange={handleChange('duration')}
-                    InputProps={{
-                      inputProps: { min: 1, max: 1440 },
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <AccessTimeIcon color="primary" />
-                        </InputAdornment>
-                      )
-                    }}
-                    placeholder="Ex: 30, 90, 120"
-                    variant="outlined"
-                    helperText="Entre 1 e 1440 minutos (24h)"
-                  />
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      label="Duração em minutos"
+                      type="number"
+                      value={activity.duration}
+                      onChange={handleChange('duration')}
+                      InputProps={{
+                        inputProps: { min: 1, max: 1440 },
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <AccessTimeIcon color="primary" />
+                          </InputAdornment>
+                        )
+                      }}
+                      placeholder="Ex: 30, 90, 120"
+                      variant="outlined"
+                      helperText="Entre 1 e 1440 minutos (24h)"
+                    />
+                    <Tooltip title="Deixar IA estimar o tempo baseado na atividade">
+                      <IconButton
+                        onClick={() => setActivity(prev => ({ ...prev, duration: 0 }))}
+                        sx={{
+                          mt: 0.5,
+                          color: '#10b981',
+                          '&:hover': {
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                          }
+                        }}
+                      >
+                        <AutoAwesomeIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <BatteryStdIcon sx={{ fontSize: 20, color: 'warning.main', mr: 1 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -496,7 +537,7 @@ export default function TextEntry() {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <BatteryFullIcon sx={{ fontSize: 20, color: 'success.main', mr: 1 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -620,13 +661,15 @@ export default function TextEntry() {
             onNavigateToGoal={(goalId) => window.location.href = `/goals?highlight=${goalId}`}
             onUpdateProgress={async (goalId, newProgress) => {
               try {
+                const user = JSON.parse(localStorage.getItem('signalRuidoUser') || '{}');
                 await fetch('/api/goals/progress', {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     goalId,
                     progressPercentage: newProgress,
-                    updateReason: 'activity'
+                    updateReason: 'activity',
+                    userId: user.id
                   })
                 });
               } catch (error) {
@@ -734,5 +777,6 @@ export default function TextEntry() {
         </DialogActions>
       </Dialog>
     </div>
+    </ProtectedRoute>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../src/components/Header';
+import ProtectedRoute from '../src/components/ProtectedRoute';
 import {
   Container,
   Typography,
@@ -44,11 +45,15 @@ import {
   GpsFixed as TargetIcon,
   Psychology as PsychologyIcon,
   AutoAwesome as AutoAwesomeIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Route as RouteIcon
 } from '@mui/icons-material';
 import { LoadingButton, GoalAnalysisLoading, ErrorDisplay } from '../src/components/LoadingStates';
 import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CriticalPathWizard from '../src/components/CriticalPathWizard';
+import IdealPathTimeline from '../src/components/IdealPathTimeline';
+import ProgressComparisonChart from '../src/components/ProgressComparisonChart';
 
 // --- Framework Manager Component ---
 const FrameworkManager = ({ goal }) => {
@@ -155,6 +160,9 @@ export default function Goals() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [loadingGoals, setLoadingGoals] = useState(true);
+  const [criticalPathWizardOpen, setCriticalPathWizardOpen] = useState(false);
+  const [selectedGoalForPath, setSelectedGoalForPath] = useState(null);
+  const [goalIdealPaths, setGoalIdealPaths] = useState({});
 
   useEffect(() => {
     loadGoals();
@@ -256,6 +264,24 @@ export default function Goals() {
       setGoals(prev => ({
         ...prev,
         [type]: prev[type].filter(goal => goal.id !== goalId)
+      }));
+    }
+  };
+
+  const handleOpenCriticalPathWizard = (goal) => {
+    const user = JSON.parse(localStorage.getItem('signalRuidoUser') || '{}');
+    setSelectedGoalForPath({
+      ...goal,
+      userId: user.id
+    });
+    setCriticalPathWizardOpen(true);
+  };
+
+  const handleSaveCriticalPath = async (idealPath) => {
+    if (selectedGoalForPath) {
+      setGoalIdealPaths(prev => ({
+        ...prev,
+        [selectedGoalForPath.id]: idealPath
       }));
     }
   };
@@ -443,8 +469,9 @@ export default function Goals() {
   ];
 
   return (
-    <div>
-      <Header />
+    <ProtectedRoute>
+      <div>
+        <Header />
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography
@@ -649,19 +676,36 @@ export default function Goals() {
                       <Box>
                         {typeGoals.map((goal) => (
                            <Accordion key={goal.id} sx={{ backgroundImage: 'none', boxShadow: 'none', '&:before': { display: 'none' } }}>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                {goal.aiSuggested ? (
-                                  <AutoAwesomeIcon sx={{ fontSize: 16, color: config.color, mr: 1 }} />
-                                ) : (
-                                  <FlagIcon sx={{ fontSize: 16, color: config.color, mr: 1 }} />
-                                )}
-                                <ListItemText primary={goal.text} primaryTypographyProps={{ fontSize: '0.875rem' }} />
-                                <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDeleteGoal(type, goal.id); }}>
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Box>
-                            </AccordionSummary>
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                              <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                sx={{ flex: 1, minWidth: 0 }}
+                              >
+                                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                  {goal.aiSuggested ? (
+                                    <AutoAwesomeIcon sx={{ fontSize: 16, color: config.color, mr: 1 }} />
+                                  ) : (
+                                    <FlagIcon sx={{ fontSize: 16, color: config.color, mr: 1 }} />
+                                  )}
+                                  <ListItemText primary={goal.text} primaryTypographyProps={{ fontSize: '0.875rem' }} />
+                                </Box>
+                              </AccordionSummary>
+                              <IconButton
+                                size="small"
+                                onClick={(e) => { e.stopPropagation(); handleOpenCriticalPathWizard({ ...goal, goal_type: type, title: goal.text }); }}
+                                sx={{ ml: 0.5 }}
+                                title="Criar rota crítica"
+                              >
+                                <RouteIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={(e) => { e.stopPropagation(); handleDeleteGoal(type, goal.id); }}
+                                sx={{ ml: 0.5 }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                             <AccordionDetails>
                               <FrameworkManager goal={goal} />
                             </AccordionDetails>
@@ -958,7 +1002,16 @@ export default function Goals() {
             )}
           </DialogActions>
         </Dialog>
+
+        {/* Critical Path Wizard */}
+        <CriticalPathWizard
+          open={criticalPathWizardOpen}
+          onClose={() => setCriticalPathWizardOpen(false)}
+          goal={selectedGoalForPath}
+          onSave={handleSaveCriticalPath}
+        />
       </Container>
     </div>
+    </ProtectedRoute>
   );
 }

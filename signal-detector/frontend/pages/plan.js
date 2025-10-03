@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../src/components/Header';
+import ProtectedRoute from '../src/components/ProtectedRoute';
 import {
   Container, Typography, Box, Select, MenuItem, FormControl, InputLabel, Card, CardContent, Button, TextField, Grid, IconButton, Chip, Tooltip
 } from '@mui/material';
@@ -97,8 +98,9 @@ export default function PlanPage() {
   };
 
   return (
-    <div>
-      <Header />
+    <ProtectedRoute>
+      <div>
+        <Header />
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
           Plano de Ação: Atividades-Chave
@@ -201,5 +203,6 @@ export default function PlanPage() {
         </Grid>
       </Container>
     </div>
+    </ProtectedRoute>
   );
 }

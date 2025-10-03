@@ -4,14 +4,35 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import { AccountCircle, Logout } from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
   const router = useRouter();
+  const { user, logout } = useAuth();
+  const [anchorEl, setAnchorEl] = React.useState(null);
 
   const isActive = (pathname) => router.pathname === pathname;
+
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleClose();
+    router.push('/login');
+  };
 
   return (
     <AppBar
@@ -133,7 +154,63 @@ export default function Header() {
           >
             Dashboard
           </Button>
+          <Button
+            color="inherit"
+            component={Link}
+            href="/critical-path"
+            sx={{
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              backgroundColor: isActive('/critical-path') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }
+            }}
+          >
+            Rota Crítica
+          </Button>
         </Box>
+
+        {user && (
+          <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+            <Typography variant="body2" sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}>
+              {user.name}
+            </Typography>
+            <IconButton
+              size="large"
+              onClick={handleMenu}
+              color="inherit"
+            >
+              <AccountCircle />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem onClick={handleClose}>
+                <Typography variant="body2" color="text.secondary">
+                  {user.email}
+                </Typography>
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <Logout sx={{ mr: 1, fontSize: 18 }} />
+                Sair
+              </MenuItem>
+            </Menu>
+          </Box>
+        )}
       </Toolbar>
     </AppBar>
   );

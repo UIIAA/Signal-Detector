@@ -5,7 +5,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { limit = 10, offset = 0 } = req.query;
+  const { limit = 10, offset = 0, userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
 
   try {
     const { dbType } = await getDb();
@@ -29,13 +33,13 @@ export default async function handler(req, res) {
       FROM activities a
       LEFT JOIN activity_goals ag ON a.id = ag.activity_id
       LEFT JOIN goals g ON ag.goal_id = g.id
-      WHERE a.user_id = 'default-user'
+      WHERE a.user_id = $1
       GROUP BY a.id
       ORDER BY a.created_at DESC
-      LIMIT $1 OFFSET $2
+      LIMIT $2 OFFSET $3
     `;
 
-    const { rows: activities } = await query(activitiesQuery, [parseInt(limit), parseInt(offset)]);
+    const { rows: activities } = await query(activitiesQuery, [userId, parseInt(limit), parseInt(offset)]);
 
     const formattedActivities = activities.map(row => ({
       id: row.id,
@@ -54,7 +58,7 @@ export default async function handler(req, res) {
       goalsCount: row.goals_count || 0
     }));
 
-    const { rows: totalResult } = await query('SELECT COUNT(*) as count FROM activities WHERE user_id = $1', ['default-user']);
+    const { rows: totalResult } = await query('SELECT COUNT(*) as count FROM activities WHERE user_id = $1', [userId]);
     const total = totalResult[0].count;
 
     res.json({

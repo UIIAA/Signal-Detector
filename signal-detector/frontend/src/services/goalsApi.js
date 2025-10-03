@@ -2,12 +2,21 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? '/api'
   : '/api';
 
-const DEFAULT_USER_ID = 'default-user';
+const getUserFromStorage = () => {
+  try {
+    const user = localStorage.getItem('signalRuidoUser');
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+};
 
 export const goalsApi = {
-  async getGoals(userId = DEFAULT_USER_ID) {
+  async getGoals(userId = null) {
+    const user = getUserFromStorage();
+    const actualUserId = userId || (user ? user.id : 'production-user');
     try {
-      const response = await fetch(`${API_BASE_URL}/goals/${userId}`);
+      const response = await fetch(`${API_BASE_URL}/goals/${actualUserId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch goals');
       }
@@ -18,7 +27,10 @@ export const goalsApi = {
     }
   },
 
-  async createGoal(goalData, userId = DEFAULT_USER_ID) {
+  async createGoal(goalData, userId = null) {
+    const user = getUserFromStorage();
+    const actualUserId = userId || (user ? user.id : 'production-user');
+
     try {
       const response = await fetch(`${API_BASE_URL}/goals`, {
         method: 'POST',
@@ -26,7 +38,7 @@ export const goalsApi = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
+          userId: actualUserId,
           title: goalData.text || goalData.title,
           description: goalData.description || '',
           goalType: goalData.type,

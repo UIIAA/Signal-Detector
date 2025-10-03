@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from '../src/components/Header';
+import ProtectedRoute from '../src/components/ProtectedRoute';
 import { Container, Typography, Grid, Card, CardContent, CardActions, Button, Box, Chip, Stack } from '@mui/material';
 import MicIcon from '@mui/icons-material/Mic';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
@@ -11,8 +12,9 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 
 export default function Home() {
   return (
-    <div>
-      <Header />
+    <ProtectedRoute>
+      <div>
+        <Header />
       <Container maxWidth="lg">
         <Box sx={{ textAlign: 'center', my: 8 }}>
           <Typography
@@ -378,5 +380,6 @@ export default function Home() {
         </Box>
       </Container>
     </div>
+    </ProtectedRoute>
   );
 }

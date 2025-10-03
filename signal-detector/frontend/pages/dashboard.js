@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../src/components/Header';
+import ProtectedRoute from '../src/components/ProtectedRoute';
+import { useAuth } from '../src/contexts/AuthContext';
 import {
   Container,
   Typography,
@@ -67,8 +69,10 @@ import { goalsApi } from '../src/services/goalsApi';
 import RecentActivities from '../src/components/RecentActivities';
 import ProgressTracker from '../src/components/ProgressTracker';
 import LeverageMatrix from '../src/components/LeverageMatrix';
+import EfficiencyRankingCard from '../src/components/EfficiencyRankingCard';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -92,7 +96,7 @@ export default function Dashboard() {
         // Load only static data that doesn't change with filters
         const [goalsResult, activitiesResult] = await Promise.allSettled([
           goalsApi.getGoals(),
-          fetch('/api/activities/recent?limit=50') // Increased limit for Leverage Matrix
+          fetch(`/api/activities/recent?limit=50&userId=${user?.id}`) // Increased limit for Leverage Matrix
             .then(response => response.ok ? response.json() : Promise.reject('Activities API failed'))
         ]);
 
@@ -158,12 +162,12 @@ export default function Dashboard() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              userId: 'default-user',
+              userId: user?.id,
               goalIds: selectedGoals.map(goal => goal.id)
             }),
           }).then(response => response.ok ? response.json() : Promise.reject('Analytics API failed')),
 
-          api.getTopGoals('default-user', timeframe)
+          api.getTopGoals(user?.id, timeframe)
         ]);
 
         // Process analytics data
@@ -228,13 +232,15 @@ export default function Dashboard() {
   const handleUpdateProgress = async (goalId, newProgress) => {
     setProgressLoading(true);
     try {
+      const user = JSON.parse(localStorage.getItem('signalRuidoUser') || '{}');
       const response = await fetch('/api/goals/progress', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           goalId,
           progressPercentage: newProgress,
-          updateReason: 'manual'
+          updateReason: 'manual',
+          userId: user.id
         })
       });
 
@@ -308,8 +314,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
-      <Header />
+    <ProtectedRoute>
+      <div>
+        <Header />
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Header com métricas principais */}
         <Box sx={{ mb: 4 }}>
@@ -548,6 +555,11 @@ export default function Dashboard() {
               <LeverageMatrix activities={recentActivities} />
             </Box>
 
+            {/* Efficiency Ranking */}
+            <Box sx={{ mb: 4 }}>
+              <EfficiencyRankingCard userId={user?.id} />
+            </Box>
+
             {/* Objetivos mais sinalizados */}
             <Card>
               <CardContent sx={{ p: 4 }}>
@@ -700,5 +712,6 @@ export default function Dashboard() {
         </Grid>
       </Container>
     </div>
+    </ProtectedRoute>
   );
 }

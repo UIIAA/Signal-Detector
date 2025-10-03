@@ -1,44 +1,46 @@
+
+const GenerativeAI = require("./GenerativeAI");
+
 class AdvancedAnalytics {
-  generateInsights(activities) {
+  constructor() {
+    this.generativeAI = new GenerativeAI();
+  }
+
+  async generateInsights(activities) {
     if (!activities || activities.length === 0) {
       return {};
     }
 
-    return {
-      bestProductiveHours: this.getBestProductiveHours(activities),
-      worstProductiveHours: this.getWorstProductiveHours(activities),
-      energyPatterns: this.getEnergyPatterns(activities),
-      recommendations: this.getRecommendations(activities),
-      predictions: this.getPredictions(activities),
-    };
-  }
+    const prompt = `
+      Analise as seguintes atividades de um usuário e gere insights e recomendações de produtividade.
+      Atividades: ${JSON.stringify(activities, null, 2)}
 
-  getBestProductiveHours(activities) {
-    // Dummy logic
-    return "Você é 73% mais produtivo às 9h";
-  }
+      Gere o seguinte JSON:
+      {
+        "bestProductiveHours": "(string)",
+        "worstProductiveHours": "(string)",
+        "energyPatterns": "(string)",
+        "recommendations": [
+          "(string)",
+          "(string)"
+        ],
+        "predictions": "(string)"
+      }
+    `;
 
-  getWorstProductiveHours(activities) {
-    // Dummy logic
-    return "Evite tarefas complexas às 15h";
-  }
-
-  getEnergyPatterns(activities) {
-    // Dummy logic
-    return "Exercício aumenta signal score em 25%";
-  }
-
-  getRecommendations(activities) {
-    // Dummy logic
-    return [
-      "Mover 'Review código' para 10h (+15 pontos)",
-      "Reduzir reuniões > 60min (-40% ruído)",
-    ];
-  }
-
-  getPredictions(activities) {
-    // Dummy logic
-    return "80% chance de procrastinar esta tarde";
+    try {
+      const result = await this.generativeAI.generate(prompt);
+      return JSON.parse(result);
+    } catch (error) {
+      console.error("Error generating insights with AI:", error);
+      return {
+        bestProductiveHours: "",
+        worstProductiveHours: "",
+        energyPatterns: "",
+        recommendations: [],
+        predictions: "",
+      };
+    }
   }
 }
 
