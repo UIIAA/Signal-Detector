@@ -70,6 +70,9 @@ import RecentActivities from '../src/components/RecentActivities';
 import ProgressTracker from '../src/components/ProgressTracker';
 import LeverageMatrix from '../src/components/LeverageMatrix';
 import EfficiencyRankingCard from '../src/components/EfficiencyRankingCard';
+import NextActionCard from '../src/components/NextActionCard';
+import HabitTracker from '../src/components/HabitTracker';
+import RecommendedTemplates from '../src/components/RecommendedTemplates';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -560,6 +563,11 @@ export default function Dashboard() {
               <EfficiencyRankingCard userId={user?.id} />
             </Box>
 
+            {/* Recommended Templates */}
+            <Box sx={{ mb: 4 }}>
+              <RecommendedTemplates userId={user?.id} limit={5} />
+            </Box>
+
             {/* Objetivos mais sinalizados */}
             <Card>
               <CardContent sx={{ p: 4 }}>
@@ -652,6 +660,11 @@ export default function Dashboard() {
 
           {/* Sidebar - Progress & Activities */}
           <Grid xs={12} lg={4}>
+            {/* Next Action Card - Coach IA */}
+            <Box sx={{ mb: 4 }}>
+              <NextActionCard userId={user?.id} />
+            </Box>
+
             {/* Progress Tracker */}
             <Box sx={{ mb: 4 }}>
               <ProgressTracker
@@ -660,6 +673,11 @@ export default function Dashboard() {
                 onMarkComplete={handleMarkComplete}
                 loading={progressLoading}
               />
+            </Box>
+
+            {/* Habit Tracker */}
+            <Box sx={{ mb: 4 }}>
+              <HabitTracker userId={user?.id} />
             </Box>
 
             {/* Recent Activities */}

@@ -15,24 +15,19 @@ export default async function handler(req, res) {
   try {
     // Definir período baseado no timeframe
     let dateFilter = '';
-    const now = new Date();
+    const queryParams = [userId];
+    let paramIndex = 2;
 
     switch (timeframe) {
       case 'day':
-        const today = new Date(now.setHours(0, 0, 0, 0));
-        dateFilter = `AND a.created_at >= '${today.toISOString()}'`;
+        dateFilter = `AND created_at >= CURRENT_DATE`;
         break;
       case 'week':
-        const weekAgo = new Date(now.setDate(now.getDate() - 7));
-        dateFilter = `AND a.created_at >= '${weekAgo.toISOString()}'`;
+        dateFilter = `AND created_at >= NOW() - INTERVAL '7 days'`;
         break;
       case 'month':
-        const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
-        dateFilter = `AND a.created_at >= '${monthAgo.toISOString()}'`;
+        dateFilter = `AND created_at >= NOW() - INTERVAL '30 days'`;
         break;
-      case 'all':
-      default:
-        dateFilter = '';
     }
 
     // Buscar atividades do usuário
@@ -53,7 +48,7 @@ export default async function handler(req, res) {
       AND duration_minutes > 0
       AND impact > 0
       ORDER BY created_at DESC
-    `, [userId]);
+    `, queryParams);
 
     // Calcular eficiência e criar ranking
     const ranking = EfficiencyCalculator.createRanking(activities, parseInt(limit));
@@ -74,7 +69,7 @@ export default async function handler(req, res) {
       }
     });
 
-    res.json({
+    res.status(200).json({
       ranking,
       stats,
       timeframe,
@@ -82,6 +77,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Error calculating efficiency:', error);
-    res.status(500).json({ error: 'Error calculating efficiency' });
+    res.status(500).json({ error: 'Error fetching efficiency data' });
   }
 }

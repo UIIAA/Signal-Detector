@@ -204,6 +204,7 @@ REGRAS:
 - Sugira algo concreto e acionável AGORA
 - Tempo máximo: 90 minutos
 - Justifique sua recomendação
+- Sugira quando agendar esta ação (time blocking)
 
 Responda APENAS com JSON válido no formato:
 {
@@ -216,6 +217,12 @@ Responda APENAS com JSON válido no formato:
   "estimatedEffort": 3,
   "reasoning": "Por que esta é a melhor próxima ação agora (2-3 frases)",
   "urgencyLevel": "high|medium|low",
+  "suggestedTimeBlock": {
+    "when": "today|tomorrow|this-week",
+    "timeOfDay": "morning|afternoon|evening",
+    "blockType": "focus|deep-work|learning",
+    "reasoning": "Por que agendar neste momento"
+  },
   "alternativeActions": [
     {
       "action": "Alternativa 1",
@@ -284,6 +291,18 @@ function generateRuleBasedRecommendation(context) {
     reasoning = 'Antes de agir, é importante ter objetivos claros definidos.';
   }
 
+  // Determinar sugestão de time block
+  let suggestedTimeBlock = {
+    when: 'today',
+    timeOfDay: isMorning ? 'morning' : isAfternoon ? 'afternoon' : 'evening',
+    blockType: estimatedImpact >= 8 ? 'deep-work' : estimatedImpact >= 6 ? 'focus' : 'learning',
+    reasoning: isMorning
+      ? 'Manhã é ideal para trabalho profundo e de alto impacto'
+      : isAfternoon
+      ? 'Tarde é bom momento para atividades focadas'
+      : 'Noite pode ser usada para planejamento e aprendizado'
+  };
+
   return {
     action,
     description,
@@ -294,6 +313,7 @@ function generateRuleBasedRecommendation(context) {
     estimatedEffort,
     reasoning,
     urgencyLevel: recommendedGoal && recommendedGoal.progress_percentage < 25 ? 'high' : 'medium',
+    suggestedTimeBlock,
     alternativeActions: [],
     source: 'rule-based',
     context: {

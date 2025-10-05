@@ -18,8 +18,8 @@ export default async function handler(req, res) {
 async function getSchedule(req, res) {
   const { userId, startDate, endDate, status } = req.query;
 
-  if (!userId) {
-    return res.status(400).json({ error: 'userId is required' });
+  if (!userId || !startDate || !endDate) {
+    return res.status(400).json({ error: 'userId, startDate and endDate are required' });
   }
 
   try {
@@ -127,6 +127,10 @@ async function createTimeBlock(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  if (new Date(`${scheduledDate}T${endTime}`) <= new Date(`${scheduledDate}T${startTime}`)) {
+    return res.status(400).json({ error: 'endTime must be after startTime' });
+  }
+
   try {
     // Verificar conflitos
     const conflicts = await detectConflicts(userId, scheduledDate, startTime, endTime);
@@ -165,7 +169,7 @@ async function createTimeBlock(req, res) {
       isRecurring, recurrencePattern || null
     ]);
 
-    res.status(201).json({ block: rows[0] });
+    res.status(201).json({ success: true, block: rows[0] });
   } catch (error) {
     console.error('Error creating time block:', error);
     res.status(500).json({ error: 'Error creating time block' });

@@ -34,7 +34,7 @@ describe('/api/schedule', () => {
           id: 'block1',
           title: 'Foco',
           block_type: 'focus',
-          scheduled_date: new Date('2025-01-06'),
+          scheduled_date: '2025-01-06T00:00:00.000Z',
           start_time: '09:00:00',
           end_time: '10:30:00',
           status: 'scheduled'
@@ -43,7 +43,7 @@ describe('/api/schedule', () => {
           id: 'block2',
           title: 'Reunião',
           block_type: 'meeting',
-          scheduled_date: new Date('2025-01-06'),
+          scheduled_date: '2025-01-06T00:00:00.000Z',
           start_time: '14:00:00',
           end_time: '15:00:00',
           status: 'scheduled'
@@ -52,7 +52,7 @@ describe('/api/schedule', () => {
           id: 'block3',
           title: 'Deep Work',
           block_type: 'deep-work',
-          scheduled_date: new Date('2025-01-07'),
+          scheduled_date: '2025-01-07T00:00:00.000Z',
           start_time: '08:00:00',
           end_time: '11:00:00',
           status: 'scheduled'

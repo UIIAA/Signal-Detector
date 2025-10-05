@@ -171,6 +171,23 @@ export default function Header() {
           >
             Rota Crítica
           </Button>
+          <Button
+            color="inherit"
+            component={Link}
+            href="/habits"
+            sx={{
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              backgroundColor: isActive('/habits') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }
+            }}
+          >
+            Hábitos
+          </Button>
         </Box>
 
         {user && (

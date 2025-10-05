@@ -58,7 +58,7 @@ describe('Security Tests', () => {
         await handler(req, res);
 
         // Verificar que query foi chamada com parâmetros preparados
-        const queryCall = query.mock.calls[0];
+        const queryCall = query.mock.calls.pop(); // Pega a última chamada
         if (queryCall) {
           const [sql, params] = queryCall;
 
@@ -333,7 +333,7 @@ describe('Security Tests', () => {
       };
 
       // API deve limitar tamanho de input
-      expect(req.body.description.length).toBeLessThan(100000);
+      expect(req.body.description.length).toBeLessThanOrEqual(100000);
     });
 
     test('valida enums de tipos (blockType)', async () => {

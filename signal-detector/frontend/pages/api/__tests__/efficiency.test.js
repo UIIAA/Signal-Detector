@@ -3,6 +3,8 @@ jest.mock('../../../../shared/database/db');
 
 const { query } = require('../../../../shared/database/db');
 
+const handler = require('../activities/efficiency').default;
+
 describe('/api/activities/efficiency', () => {
   let req, res;
 
@@ -40,15 +42,21 @@ describe('/api/activities/efficiency', () => {
         ranking: expect.arrayContaining([
           expect.objectContaining({
             rank: expect.any(Number),
-            efficiency_score: expect.any(Number)
+            efficiency: expect.any(Number)
           })
         ]),
         stats: expect.objectContaining({
           total: expect.any(Number),
           average: expect.any(Number),
           highest: expect.any(Number),
-          lowest: expect.any(Number)
-        })
+          lowest: expect.any(Number),
+          median: expect.any(Number),
+          highEfficiencyCount: expect.any(Number),
+          lowEfficiencyCount: expect.any(Number),
+          distribution: expect.any(Object)
+        }),
+        timeframe: 'week',
+        total: 3
       });
     });
 
@@ -152,8 +160,15 @@ describe('/api/activities/efficiency', () => {
         ranking: [],
         stats: expect.objectContaining({
           total: 0,
-          average: 0
-        })
+          average: 0,
+          median: 0,
+          highest: 0,
+          lowest: 0,
+          highEfficiencyCount: 0,
+          lowEfficiencyCount: 0
+        }),
+        timeframe: 'week',
+        total: 0
       });
     });
 
