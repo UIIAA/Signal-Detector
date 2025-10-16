@@ -6,21 +6,6 @@ const nextConfig = {
       ? `https://${process.env.VERCEL_URL}/api`
       : 'http://localhost:4000'
   },
-  webpack: (config, { isServer }) => {
-    // Mark 'pg' and 'sqlite3' as external for the server-side build.
-    if (isServer) {
-      config.externals.push('pg', 'sqlite3');
-    } else {
-      // For the client-side build, provide a fallback to prevent errors.
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        pg: false,
-        sqlite3: false,
-      };
-    }
-
-    return config;
-  },
   async rewrites() {
     if (process.env.NODE_ENV === 'production') {
       return [];
