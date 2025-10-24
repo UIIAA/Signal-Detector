@@ -469,11 +469,60 @@ npm run dev
 # Acesse: http://localhost:3000
 ```
 
-### Variáveis de Ambiente
+### Variáveis de Ambiente (OBRIGATÓRIO)
+
+**⚠️ IMPORTANTE**: Todas as variáveis marcadas como OBRIGATÓRIAS devem ser configuradas antes de executar a aplicação.
+
 ```bash
-# .env.local
-POSTGRES_URL=sua_connection_string
-GEMINI_API_KEY=sua_api_key
+# .env.local (NUNCA commite este arquivo!)
+
+# ========== AUTENTICAÇÃO (OBRIGATÓRIO) ==========
+# Gere com: openssl rand -base64 32
+JWT_SECRET=seu_jwt_secret_aqui
+NEXTAUTH_SECRET=seu_nextauth_secret_aqui
+NEXTAUTH_URL=http://localhost:3000
+
+# ========== DATABASE (OBRIGATÓRIO) ==========
+# PostgreSQL Connection String (Neon)
+POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
+
+# ========== IA (OBRIGATÓRIO) ==========
+# Google Gemini API Key
+# Obtenha em: https://makersuite.google.com/app/apikey
+GEMINI_API_KEY=sua_api_key_do_gemini
+
+# ========== AMBIENTE ==========
+NODE_ENV=development  # ou 'production'
+```
+
+### Setup Inicial
+
+1. **Copie o template de ambiente:**
+```bash
+cd frontend
+cp .env.example .env.local
+```
+
+2. **Gere secrets seguros:**
+```bash
+# JWT_SECRET
+openssl rand -base64 32
+
+# NEXTAUTH_SECRET
+openssl rand -base64 32
+```
+
+3. **Configure o PostgreSQL (Neon):**
+   - Obtenha a connection string do seu projeto Neon
+   - Adicione em `POSTGRES_URL` no `.env.local`
+
+4. **Obtenha a chave Gemini:**
+   - Acesse: https://makersuite.google.com/app/apikey
+   - Adicione em `GEMINI_API_KEY` no `.env.local`
+
+5. **Valide a configuração:**
+```bash
+node validate-env.js
 ```
 
 ### Aplicar Migrations
@@ -559,10 +608,24 @@ psql -h HOST -U USER -d DATABASE -f shared/database/migration_vXX.sql
 - Debounce em buscas
 
 ### Segurança
+
+#### ✅ Correções Aplicadas (2025-10-22)
+- **Secrets Hardcoded Removidos**: JWT_SECRET e NEXTAUTH_SECRET agora são obrigatórios
+- **Validação de Environment Variables**: Fail-fast com mensagens claras
+- **SSL Certificate Validation**: Habilitado em produção (NODE_ENV=production)
+- **Database Imports Padronizados**: Todos os 25 API routes usam caminho consistente
+- **Script de Validação**: `validate-env.js` verifica configuração antes do startup
+
+#### Proteções Ativas
 - SQL injection protection (parameterized queries)
-- SSL obrigatório no database
-- Auth validation em todas APIs
+- SSL obrigatório no database (PostgreSQL/Neon)
+- Auth validation em todas APIs protegidas
 - User isolation (WHERE user_id = $1)
+- Rate limiting configurado
+- Input sanitization (DOMPurify)
+- Zod schema validation
+
+📄 **Detalhes completos**: Ver `SECURITY_FIXES_APPLIED.md` na raiz do projeto
 
 ---
 

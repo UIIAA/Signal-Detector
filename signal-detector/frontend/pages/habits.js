@@ -38,7 +38,7 @@ import {
 } from '@mui/icons-material';
 
 export default function Habits() {
-  const { user } = useAuth();
+  const { user, fetchWithAuth } = useAuth();
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -63,10 +63,18 @@ export default function Habits() {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/habits?userId=${user.id}`);
+      const response = await fetchWithAuth(`/api/habits`);
       if (response.ok) {
         const data = await response.json();
-        setHabits(data.habits || []);
+        const processedHabits = (data.habits || []).map(habit => ({
+          ...habit,
+          checkins: habit.checkins || [], // Garante que checkins seja um array
+          checkinsMap: (habit.checkins || []).reduce((acc, checkin) => {
+            acc[checkin.checkin_date] = checkin;
+            return acc;
+          }, {})
+        }));
+        setHabits(processedHabits);
       }
     } catch (error) {
       console.error('Error loading habits:', error);
@@ -104,6 +112,37 @@ export default function Habits() {
     setDialogOpen(true);
   };
 
+  const handleCheckIn = async (habitId, date, completed) => {
+    // Optimistic UI update
+    const originalHabits = habits;
+    const updatedHabits = habits.map(h => {
+      if (h.id === habitId) {
+        const newCheckinsMap = { ...h.checkinsMap, [date]: { checkin_date: date, completed } };
+        return { ...h, checkinsMap: newCheckinsMap };
+      }
+      return h;
+    });
+    setHabits(updatedHabits);
+
+    try {
+      const response = await fetchWithAuth('/api/habits/checkin', {
+        method: 'POST',
+        body: JSON.stringify({ habitId, date, completed })
+      });
+
+      if (!response.ok) throw new Error('Failed to update check-in');
+
+      // Optionally, reload habits from server to get updated streaks and success rates
+      await loadHabits();
+
+    } catch (error) {
+      console.error('Error checking in habit:', error);
+      // Rollback on error
+      setHabits(originalHabits);
+      alert('Não foi possível atualizar o hábito. Tente novamente.');
+    }
+  };
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingHabit(null);
@@ -117,7 +156,7 @@ export default function Habits() {
         ? { ...formData, habitId: editingHabit.id, userId: user.id }
         : { ...formData, userId: user.id };
 
-      const response = await fetch(`${url}?userId=${user.id}`, {
+      const response = await fetchWithAuth(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -136,10 +175,10 @@ export default function Habits() {
     if (!confirm('Tem certeza que deseja excluir este hábito?')) return;
 
     try {
-      const response = await fetch(`/api/habits?userId=${user.id}`, {
+      const response = await fetchWithAuth(`/api/habits`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ habitId, userId: user.id })
+        body: JSON.stringify({ habitId })
       });
 
       if (response.ok) {
@@ -210,7 +249,7 @@ export default function Habits() {
 
         {/* Habit Tracker Visual */}
         <Box sx={{ mb: 4 }}>
-          <HabitTracker userId={user?.id} showAll />
+          <HabitTracker habits={habits} onCheckIn={handleCheckIn} onAddHabit={() => handleOpenDialog()} />
         </Box>
 
         {/* Lista de Hábitos */}

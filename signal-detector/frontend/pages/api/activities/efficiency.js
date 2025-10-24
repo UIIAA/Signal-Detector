@@ -1,21 +1,53 @@
-import { query } from '../../../../shared/database/db';
+import { query } from '../../../shared/database/db';  // Use the shared database abstraction
 import EfficiencyCalculator from '../../../src/services/EfficiencyCalculator';
+import { FilterSchema, validateWithSchema } from '../../../src/lib/validation';
+import { apiLimiter } from '../../../src/lib/rateLimit';
+import { withAuth } from '../../../src/lib/auth';
 
-export default async function handler(req, res) {
+// Apply rate limiting for API endpoints
+const applyRateLimit = async (req, res) => {
+  await apiLimiter(req, res, () => {});
+};
+
+// Wrap the handler with authentication
+export default withAuth(async function handler(req, res) {
+  await applyRateLimit(req, res);
+  
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userId, timeframe = 'week', limit = 10 } = req.query;
+  // Validate query parameters
+  const queryParams = {
+    userId: req.query.userId,
+    timeframe: req.query.timeframe || 'week',
+    limit: req.query.limit || 10
+  };
 
-  if (!userId) {
-    return res.status(400).json({ error: 'userId is required' });
+  const validation = validateWithSchema(FilterSchema.extend({
+    userId: FilterSchema.shape.userId,
+    timeframe: FilterSchema.shape.timeframe,
+    limit: FilterSchema.shape.timeframe.optional().transform(val => parseInt(val) || 10)
+  }), queryParams);
+
+  if (!validation.success) {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: validation.errors 
+    });
+  }
+
+  const { userId, timeframe, limit } = validation.data;
+
+  // Verify that the authenticated user is requesting their own data
+  if (req.user.id !== userId) {
+    return res.status(403).json({ error: 'Forbidden: Access denied for this user' });
   }
 
   try {
     // Definir período baseado no timeframe
     let dateFilter = '';
-    const queryParams = [userId];
+    const sqlParams = [userId];
     let paramIndex = 2;
 
     switch (timeframe) {
@@ -27,6 +59,9 @@ export default async function handler(req, res) {
         break;
       case 'month':
         dateFilter = `AND created_at >= NOW() - INTERVAL '30 days'`;
+        break;
+      case 'all':
+        dateFilter = ``; // No date filter
         break;
     }
 
@@ -48,7 +83,7 @@ export default async function handler(req, res) {
       AND duration_minutes > 0
       AND impact > 0
       ORDER BY created_at DESC
-    `, queryParams);
+    `, sqlParams);
 
     // Calcular eficiência e criar ranking
     const ranking = EfficiencyCalculator.createRanking(activities, parseInt(limit));
@@ -79,4 +114,4 @@ export default async function handler(req, res) {
     console.error('Error calculating efficiency:', error);
     res.status(500).json({ error: 'Error fetching efficiency data' });
   }
-}
+});

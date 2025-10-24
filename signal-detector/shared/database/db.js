@@ -1,5 +1,3 @@
-const { Pool } = require('pg');
-const sqlite3 = require('sqlite3');
 const path = require('path');
 const fs = require('fs');
 
@@ -56,36 +54,71 @@ async function getDb() {
   // Use PostgreSQL if POSTGRES_URL is defined (production or development)
   if (process.env.POSTGRES_URL) {
     if (!db) {
-      db = new Pool({
-        connectionString: process.env.POSTGRES_URL,
-        ssl: { rejectUnauthorized: false } // Always use SSL for Neon
-      });
-      dbType = 'postgres';
-      console.log('Connected to the PostgreSQL database (Neon).');
+      // Use dynamic import to load pg only when needed
+      let Pool;
+      try {
+        const pgModule = require('pg');
+        Pool = pgModule.Pool;
+      } catch (e) {
+        // In some build contexts, this may fail - that's expected for client builds
+        if (process.env.NODE_ENV === 'production' || typeof window === 'undefined') {
+          // This is expected in server environments
+          throw e;
+        }
+        // In client builds, this is okay to fail
+      }
+      
+      if (Pool) {
+        db = new Pool({
+          connectionString: process.env.POSTGRES_URL,
+          ssl: {
+            // Only disable certificate validation in development
+            // In production, always validate SSL certificates to prevent MITM attacks
+            rejectUnauthorized: process.env.NODE_ENV === 'production'
+          }
+        });
+        dbType = 'postgres';
+        console.log('Connected to the PostgreSQL database (Neon).');
 
-      // Initialize database schema
-      await initializeDatabase();
+        // Initialize database schema
+        await initializeDatabase();
+      }
     }
   } else {
     // Fallback to SQLite when no POSTGRES_URL is set
     if (!db) {
-      const dbPath = path.resolve(__dirname, 'signal.db');
-      const dbDir = path.dirname(dbPath);
-
-      if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
-      }
-
-      db = new sqlite3.Database(dbPath, (err) => {
-        if (err) {
-          console.error(err.message);
+      // Use dynamic import to load sqlite3 only when needed
+      let SQLite3;
+      try {
+        SQLite3 = require('sqlite3');
+      } catch (e) {
+        // In some build contexts, this may fail - that's expected for client builds
+        if (process.env.NODE_ENV === 'production' || typeof window === 'undefined') {
+          // This is expected in server environments
+          throw e;
         }
-        console.log(`Connected to the SQLite database at ${dbPath}`);
-      });
-      dbType = 'sqlite';
+        // In client builds, this is okay to fail
+      }
+      
+      if (SQLite3) {
+        const dbPath = path.resolve(__dirname, 'signal.db');
+        const dbDir = path.dirname(dbPath);
 
-      // Initialize database schema
-      setTimeout(() => initializeDatabase(), 100);
+        if (!fs.existsSync(dbDir)) {
+          fs.mkdirSync(dbDir, { recursive: true });
+        }
+
+        db = new SQLite3.Database(dbPath, (err) => {
+          if (err) {
+            console.error(err.message);
+          }
+          console.log(`Connected to the SQLite database at ${dbPath}`);
+        });
+        dbType = 'sqlite';
+
+        // Initialize database schema
+        setTimeout(() => initializeDatabase(), 100);
+      }
     }
   }
   return { db, dbType };

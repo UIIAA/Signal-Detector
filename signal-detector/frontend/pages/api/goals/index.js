@@ -1,4 +1,4 @@
-import { query } from '../../../../shared/database/db';
+import { query } from '../../../shared/database/db';
 import crypto from 'crypto';
 
 export default async function handler(req, res) {

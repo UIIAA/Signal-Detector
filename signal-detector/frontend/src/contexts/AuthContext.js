@@ -1,25 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 const AuthContext = createContext();
-
-const registerUserInDatabase = async (userData) => {
-  try {
-    await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: userData.id,
-        name: userData.name,
-        email: userData.email
-      }),
-    });
-  } catch (error) {
-    console.error('Error registering user in database:', error);
-    // Don't throw error - allow user to continue even if DB registration fails
-  }
-};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -30,112 +12,95 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
-      try {
-        const storedUser = localStorage.getItem('signalRuidoUser');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-        localStorage.removeItem('signalRuidoUser');
+    if (status === 'loading') {
+      setLoading(true);
+    } else {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.name
+        });
+      } else {
+        setUser(null);
       }
       setLoading(false);
-    };
+    }
+  }, [session, status]);
 
-    checkAuth();
-  }, []);
-
-  const login = async (email, name = null) => {
+  const login = async (email, name) => {
     try {
-      let userData;
-
-      const storedUser = localStorage.getItem('signalRuidoUser');
-      if (storedUser) {
-        userData = JSON.parse(storedUser);
-        if (userData.email === email) {
-          // Register user in database if not exists
-          await registerUserInDatabase(userData);
-          setUser(userData);
-          return userData;
-        }
-      }
-
-      userData = {
-        id: Math.random().toString(36).substring(2) + Date.now().toString(36),
+      // Use NextAuth's signIn
+      const result = await signIn('credentials', {
         email,
         name: name || email.split('@')[0],
-        createdAt: new Date().toISOString()
-      };
-
-      // Register user in database
-      await registerUserInDatabase(userData);
-
-      localStorage.setItem('signalRuidoUser', JSON.stringify(userData));
-      setUser(userData);
-
-      return userData;
+        redirect: false, // Don't redirect automatically
+      });
+      
+      if (result?.ok) {
+        // The session should update automatically via the useSession hook
+        return session?.user;
+      } else {
+        throw new Error(result?.error || 'Login failed');
+      }
     } catch (error) {
       console.error('Login error:', error);
-      throw new Error('Erro ao fazer login');
-    }
-  };
-
-  const register = async (email, name) => {
-    try {
-      const existingUser = localStorage.getItem('signalRuidoUser');
-      if (existingUser) {
-        const parsed = JSON.parse(existingUser);
-        if (parsed.email === email) {
-          throw new Error('Este email já está registrado');
-        }
-      }
-
-      const userData = {
-        id: Math.random().toString(36).substring(2) + Date.now().toString(36),
-        email,
-        name,
-        createdAt: new Date().toISOString()
-      };
-
-      // Register user in database
-      await registerUserInDatabase(userData);
-
-      localStorage.setItem('signalRuidoUser', JSON.stringify(userData));
-      setUser(userData);
-
-      return userData;
-    } catch (error) {
-      console.error('Register error:', error);
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('signalRuidoUser');
-    setUser(null);
+  const register = async (email, name) => {
+    // In our implementation, login and registration use the same endpoint
+    return login(email, name);
   };
 
-  const updateUser = (updates) => {
-    if (!user) return;
+  const logout = async () => {
+    await signOut({ redirect: false }); // Don't redirect after logout
+  };
 
-    const updatedUser = { ...user, ...updates };
-    localStorage.setItem('signalRuidoUser', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+  const fetchWithAuth = async (url, options = {}) => {
+    // Get the session token for authenticated requests
+    const sessionResponse = await signIn('credentials', { redirect: false });
+    
+    const headers = {
+      ...options.headers,
+      'Content-Type': 'application/json',
+    };
+
+    // Add authorization header if we have a session
+    if (session) {
+      // NextAuth automatically handles tokens, but we can still manually add headers if needed
+      // The session token should automatically be included via NextAuth cookies
+    }
+
+    const response = await fetch(url, { 
+      ...options, 
+      headers,
+    });
+
+    if (response.status === 401) {
+      // If unauthorized, try to refresh session or redirect
+      await signOut({ redirect: true, callbackUrl: '/login' });
+      throw new Error('Session expired. Please log in again.');
+    }
+
+    return response;
   };
 
   const value = {
     user,
-    loading,
+    loading: status === 'loading' || loading,
     login,
     register,
     logout,
-    updateUser,
-    isAuthenticated: !!user
+    fetchWithAuth,
+    isAuthenticated: !!user && status === 'authenticated',
+    sessionStatus: status,
   };
 
   return (

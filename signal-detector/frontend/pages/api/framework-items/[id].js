@@ -1,5 +1,5 @@
 
-import { query } from '../../../../shared/database/db';
+import { query } from '../../../shared/database/db';
 
 export default async function handler(req, res) {
   const { id } = req.query;

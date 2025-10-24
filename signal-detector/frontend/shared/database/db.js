@@ -10,14 +10,19 @@ const initDb = () => {
   const connectionString = process.env.POSTGRES_URL;
 
   if (!connectionString) {
-    console.error('POSTGRES_URL environment variable not set');
-    throw new Error('Database configuration missing');
+    const errorMsg =
+      'CRITICAL ERROR: POSTGRES_URL environment variable is required. ' +
+      'Please set POSTGRES_URL in your .env.local file for production database access.';
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   pool = new Pool({
     connectionString,
     ssl: {
-      rejectUnauthorized: false
+      // Only disable certificate validation in development
+      // In production, always validate SSL certificates to prevent MITM attacks
+      rejectUnauthorized: process.env.NODE_ENV === 'production'
     },
     max: 20,
     idleTimeoutMillis: 30000,

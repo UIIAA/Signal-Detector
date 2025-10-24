@@ -1,6 +1,15 @@
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+// Validate GEMINI_API_KEY environment variable
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error(
+    'CRITICAL ERROR: GEMINI_API_KEY environment variable is required. ' +
+    'Please set GEMINI_API_KEY in your .env file. ' +
+    'Get your API key from: https://makersuite.google.com/app/apikey'
+  );
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 class GenerativeAI {
@@ -17,6 +26,19 @@ class GenerativeAI {
     } catch (error) {
       console.error("Error generating content:", error);
       return null;
+    }
+  }
+
+  async generateStream(prompt, onChunk) {
+    try {
+      const result = await this.model.generateContentStream(prompt);
+      for await (const chunk of result.stream) {
+        const chunkText = await chunk.text();
+        onChunk(chunkText);
+      }
+    } catch (error) {
+      console.error("Error generating streaming content:", error);
+      onChunk(null, error);
     }
   }
 }

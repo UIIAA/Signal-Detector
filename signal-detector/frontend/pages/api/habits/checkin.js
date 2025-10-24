@@ -1,121 +1,99 @@
-import { query } from '../../../../shared/database/db';
+import { query } from '../../../shared/database/db';
+import { withAuth } from '../../../src/lib/auth';
+import { HabitCheckinSchema, validateWithSchema } from '../../../src/lib/validation';
+import { sanitizeInput } from '../../../src/lib/sanitize';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userId, habitId, completed, notes, energyLevel, difficulty } = req.body;
+  const { id: userId } = req.user;
 
-  if (!userId || !habitId || completed === undefined) {
-    return res.status(400).json({ error: 'userId, habitId, and completed are required' });
+  // Sanitize the input
+  const sanitizedBody = sanitizeInput(req.body);
+
+  // Validate with Zod
+  const validation = validateWithSchema(HabitCheckinSchema, { ...sanitizedBody, userId });
+
+  if (!validation.success) {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: validation.errors 
+    });
   }
 
+  const { habitId, checkin_date, completed } = validation.data;
+
   try {
-    // Inserir ou atualizar check-in de hoje
-    const { rows: checkins } = await query(`
-      INSERT INTO habit_checkins (
-        habit_id,
-        checkin_date,
-        completed,
-        notes,
-        energy_level,
-        difficulty
-      )
-      VALUES ($1, CURRENT_DATE, $2, $3, $4, $5)
-      ON CONFLICT (habit_id, checkin_date)
-      DO UPDATE SET
-        completed = $2,
-        notes = $3,
-        energy_level = $4,
-        difficulty = $5,
-        updated_at = NOW()
-      RETURNING *
-    `, [habitId, completed, notes || null, energyLevel || null, difficulty || null]);
-
-    // Atualizar streak do hábito
-    await updateHabitStreak(habitId);
-
-    // Buscar hábito atualizado
-    const { rows: habits } = await query(`
-      SELECT
-        h.*,
-        (SELECT COUNT(*) FROM habit_checkins hc WHERE hc.habit_id = h.id AND hc.completed = true) as total_completions,
-        (SELECT COUNT(*) FROM habit_checkins hc WHERE hc.habit_id = h.id) as total_checkins
-      FROM habits h
-      WHERE h.id = $1 AND h.user_id = $2
-    `, [habitId, userId]);
-
-    if (habits.length === 0) {
-      return res.status(404).json({ error: 'Habit not found' });
+    // Verificar se o hábito pertence ao usuário (segurança extra)
+    const { rows: habitRows } = await query('SELECT id FROM habits WHERE id = $1 AND user_id = $2', [habitId, userId]);
+    if (habitRows.length === 0) {
+      return res.status(404).json({ error: 'Habit not found or does not belong to user' });
     }
 
-    return res.json({
-      checkin: checkins[0],
-      habit: habits[0]
-    });
-  } catch (error) {
-    console.error('Error in habit checkin:', error);
+    // Usar INSERT ... ON CONFLICT (UPSERT) para criar ou atualizar o check-in
+    const { rows } = await query(`
+      INSERT INTO habit_checkins (habit_id, user_id, checkin_date, completed)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (habit_id, checkin_date)
+      DO UPDATE SET completed = $4, updated_at = NOW()
+      RETURNING *
+    `, [habitId, userId, checkin_date, completed]);
+
+    // Após o check-in, recalcular os streaks para o hábito
+    await recalculateStreaks(habitId);
+
+    return res.status(200).json({ success: true, checkin: rows[0] });
+
+  } catch (err) {
+    console.error('Check-in error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-// Função para atualizar o streak do hábito
-async function updateHabitStreak(habitId) {
-  try {
-    // Buscar check-ins ordenados por data
-    const { rows: checkins } = await query(`
+async function recalculateStreaks(habitId) {
+  // Query para recalcular e atualizar o current_streak e o longest_streak
+  await query(`
+    WITH checkin_streaks AS (
+      SELECT
+        completed,
+        checkin_date,
+        -- Define um grupo de streak. A cada dia que o hábito não foi completado, um novo grupo começa.
+        SUM(CASE WHEN completed THEN 0 ELSE 1 END) OVER (ORDER BY checkin_date) as streak_group
+      FROM habit_checkins
+      WHERE habit_id = $1
+    ),
+    streaks AS (
+      SELECT
+        COUNT(*) as streak_length
+      FROM checkin_streaks
+      WHERE completed = true
+      GROUP BY streak_group
+    ),
+    last_checkin AS (
       SELECT checkin_date, completed
       FROM habit_checkins
       WHERE habit_id = $1
       ORDER BY checkin_date DESC
-    `, [habitId]);
-
-    let currentStreak = 0;
-    let longestStreak = 0;
-    let tempStreak = 0;
-    let lastDate = null;
-
-    for (const checkin of checkins) {
-      if (checkin.completed) {
-        // Verificar se é consecutivo
-        if (!lastDate) {
-          // Primeiro check-in
-          currentStreak = 1;
-          tempStreak = 1;
-        } else {
-          const daysDiff = Math.floor((lastDate - new Date(checkin.checkin_date)) / (1000 * 60 * 60 * 24));
-
-          if (daysDiff === 1) {
-            // Consecutivo
-            if (lastDate.toDateString() === new Date().toDateString() ||
-                (lastDate - new Date()) < (1000 * 60 * 60 * 24)) {
-              currentStreak++;
-            }
-            tempStreak++;
-          } else {
-            // Quebrou o streak
-            tempStreak = 1;
-          }
-        }
-
-        longestStreak = Math.max(longestStreak, tempStreak);
-        lastDate = new Date(checkin.checkin_date);
-      } else {
-        tempStreak = 0;
-      }
-    }
-
-    // Atualizar hábito
-    await query(`
-      UPDATE habits
-      SET
-        current_streak = $1,
-        longest_streak = GREATEST(longest_streak, $2),
-        updated_at = NOW()
-      WHERE id = $3
-    `, [currentStreak, longestStreak, habitId]);
-  } catch (error) {
-    console.error('Error updating habit streak:', error);
-  }
+      LIMIT 1
+    )
+    UPDATE habits
+    SET
+      current_streak = (
+        -- Se o último check-in foi ontem ou hoje e foi completo, o streak continua.
+        -- Caso contrário, o streak é 0.
+        SELECT
+          CASE
+            WHEN (lc.completed = true AND lc.checkin_date >= (NOW()::date - INTERVAL '1 day'))
+            THEN (SELECT s.streak_length FROM streaks s ORDER BY (SELECT MAX(cs.checkin_date) FROM checkin_streaks cs WHERE cs.streak_group = s.streak_group) DESC LIMIT 1)
+            ELSE 0
+          END
+        FROM last_checkin lc
+      ),
+      longest_streak = (SELECT COALESCE(MAX(streak_length), 0) FROM streaks)
+    WHERE id = $1;
+  `, [habitId]);
 }
+
+export default withAuth(handler);

@@ -85,3 +85,5 @@ class PNLCoach {
     return this.personalizeTemplate(templates[technique], userPatterns);
   }
 }
+
+module.exports = PNLCoach;

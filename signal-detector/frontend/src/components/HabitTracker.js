@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -26,17 +26,17 @@ import {
  * Mostra últimos 7 dias e estatísticas de consistência.
  */
 export default function HabitTracker({ habits = [], onCheckIn, onAddHabit }) {
-  const getLast7Days = () => {
-    const days = [];
+
+  const { days, todayStr } = useMemo(() => {
+    const dayArray = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      days.push(date);
+      dayArray.push(date);
     }
-    return days;
-  };
-
-  const days = getLast7Days();
+    const today = new Date().toISOString().split('T')[0];
+    return { days: dayArray, todayStr: today };
+  }, []);
 
   const getStreakColor = (streak) => {
     if (streak >= 30) return '#10b981'; // green
@@ -74,8 +74,8 @@ export default function HabitTracker({ habits = [], onCheckIn, onAddHabit }) {
               <Grid item xs={3}>
                 <Typography variant="caption" fontWeight="bold">Hábito</Typography>
               </Grid>
-              {days.map((day, index) => (
-                <Grid item xs={1.3} key={index}>
+              {days.map((day) => (
+                <Grid item xs={1.3} key={day.toISOString()}>
                   <Tooltip title={day.toLocaleDateString('pt-BR')}>
                     <Typography variant="caption" textAlign="center" display="block">
                       {day.toLocaleDateString('pt-BR', { weekday: 'short' }).substring(0, 3)}
@@ -103,9 +103,9 @@ export default function HabitTracker({ habits = [], onCheckIn, onAddHabit }) {
                           }}
                         />
                         <Typography variant="caption">
-                          {habit.current_streak} dias
+                          {habit.current_streak || 0} dias
                         </Typography>
-                        {habit.longest_streak > habit.current_streak && (
+                        {(habit.longest_streak || 0) > (habit.current_streak || 0) && (
                           <Typography variant="caption" color="text.secondary">
                             (recorde: {habit.longest_streak})
                           </Typography>
@@ -114,19 +114,18 @@ export default function HabitTracker({ habits = [], onCheckIn, onAddHabit }) {
                     </Grid>
 
                     {/* Check-ins dos últimos 7 dias */}
-                    {days.map((day, index) => {
+                    {days.map((day) => {
                       const dateStr = day.toISOString().split('T')[0];
-                      const checkin = habit.checkins?.find(c => c.checkin_date === dateStr);
-                      const isToday = dateStr === new Date().toISOString().split('T')[0];
-                      const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
+                      const checkin = habit.checkinsMap[dateStr];
+                      const isPastOrToday = day <= new Date();
 
                       return (
-                        <Grid item xs={1.3} key={index}>
+                        <Grid item xs={1.3} key={dateStr}>
                           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                             <IconButton
                               size="small"
                               onClick={() => onCheckIn && onCheckIn(habit.id, dateStr, !checkin?.completed)}
-                              disabled={!isToday && !isPast}
+                              disabled={!isPastOrToday}
                               sx={{
                                 color: checkin?.completed ? 'success.main' : 'text.disabled'
                               }}
@@ -149,12 +148,12 @@ export default function HabitTracker({ habits = [], onCheckIn, onAddHabit }) {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                         <Typography variant="caption">Taxa de Sucesso</Typography>
                         <Typography variant="caption" fontWeight="bold">
-                          {habit.success_rate.toFixed(0)}%
+                          {Math.round(habit.success_rate || 0)}%
                         </Typography>
                       </Box>
                       <LinearProgress
                         variant="determinate"
-                        value={habit.success_rate}
+                        value={habit.success_rate || 0}
                         sx={{
                           height: 6,
                           borderRadius: 3,
@@ -184,14 +183,14 @@ export default function HabitTracker({ habits = [], onCheckIn, onAddHabit }) {
                 <Chip
                   icon={<TrendingUp />}
                   label={`Taxa média: ${(
-                    habits.reduce((sum, h) => sum + (h.success_rate || 0), 0) / habits.length
+                    habits.reduce((sum, h) => sum + (h.success_rate || 0), 0) / (habits.length || 1)
                   ).toFixed(0)}%`}
                   size="small"
                   color="success"
                 />
                 <Chip
                   icon={<LocalFireDepartment />}
-                  label={`Maior streak: ${Math.max(...habits.map(h => h.longest_streak || 0))} dias`}
+                  label={`Maior streak: ${Math.max(0, ...habits.map(h => h.longest_streak || 0))} dias`}
                   size="small"
                 />
               </Box>

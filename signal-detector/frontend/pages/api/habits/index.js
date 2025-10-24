@@ -1,11 +1,20 @@
-import { query } from '../../../../shared/database/db';
+import { query } from '../../../shared/database/db';
+import { withAuth } from '../../../src/lib/auth';
+import { HabitSchema, validateWithSchema } from '../../../src/lib/validation';
+import { apiLimiter } from '../../../src/lib/rateLimit';
+import { sanitizeFields } from '../../../src/lib/sanitize';
 
-export default async function handler(req, res) {
-  const { userId } = req.query;
+// Rate limiting function for this API
+const applyRateLimit = async (req, res) => {
+  await apiLimiter(req, res, () => {});
+};
 
-  if (!userId) {
-    return res.status(400).json({ error: 'userId is required' });
-  }
+async function handler(req, res) {
+  // Apply rate limiting for all requests to this API
+  await applyRateLimit(req, res);
+
+  // O ID do usuário agora vem do token JWT decodificado, não da query string.
+  const { id: userId } = req.user;
 
   try {
     switch (req.method) {
@@ -26,8 +35,13 @@ export default async function handler(req, res) {
   }
 }
 
+export default withAuth(handler);
+
 // GET - Buscar todos os hábitos do usuário
 async function handleGet(req, res, userId) {
+  // Apply rate limiting for API endpoints
+  await applyRateLimit(req, res);
+
   const { rows: habits } = await query(`
     SELECT
       h.*,
@@ -37,7 +51,11 @@ async function handleGet(req, res, userId) {
         (SELECT COUNT(*) FROM habit_checkins hc WHERE hc.habit_id = h.id AND hc.completed = true)::float /
         NULLIF((SELECT COUNT(*) FROM habit_checkins hc WHERE hc.habit_id = h.id), 0) * 100,
         0
-      ) as success_rate
+      ) as success_rate,
+      (SELECT json_agg(json_build_object('checkin_date', TO_CHAR(hc.checkin_date, 'YYYY-MM-DD'), 'completed', hc.completed))
+       FROM habit_checkins hc
+       WHERE hc.habit_id = h.id AND hc.checkin_date >= NOW() - INTERVAL '7 days'
+      ) as checkins
     FROM habits h
     WHERE h.user_id = $1
     AND h.is_active = true
@@ -49,21 +67,36 @@ async function handleGet(req, res, userId) {
 
 // POST - Criar novo hábito
 async function handlePost(req, res, userId) {
+  // Apply rate limiting for API endpoints
+  await apiLimiter(req, res, () => {});
+
+  // Sanitize input fields
+  const sanitizedBody = sanitizeFields(req.body, ['title', 'description', 'cue', 'reward']);
+
+  // Validate with Zod
+  const validation = validateWithSchema(HabitSchema, { ...sanitizedBody, userId });
+
+  if (!validation.success) {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: validation.errors 
+    });
+  }
+
   const {
     title,
     description,
     habit_type,
-    frequency,
+    frequency_type,
     target_days_per_week,
     preferred_time_of_day,
     cue,
     reward,
-    goal_id
-  } = req.body;
-
-  if (!title || !habit_type || !frequency) {
-    return res.status(400).json({ error: 'title, habit_type, and frequency are required' });
-  }
+    goal_id,
+    estimated_duration,
+    is_active,
+    paused_until
+  } = validation.data;
 
   const { rows } = await query(`
     INSERT INTO habits (
@@ -72,16 +105,20 @@ async function handlePost(req, res, userId) {
       title,
       description,
       habit_type,
-      frequency,
+      frequency_type,
       target_days_per_week,
       preferred_time_of_day,
       cue,
       reward,
+      estimated_duration,
+      is_active,
+      paused_until,
       current_streak,
       longest_streak,
-      is_active
+      total_completions,
+      success_rate
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, 0, true)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 0, 0, 0, 0)
     RETURNING *
   `, [
     userId,
@@ -89,11 +126,14 @@ async function handlePost(req, res, userId) {
     title,
     description || null,
     habit_type,
-    frequency,
-    target_days_per_week || 7,
+    frequency_type,
+    target_days_per_week,
     preferred_time_of_day || null,
     cue || null,
-    reward || null
+    reward || null,
+    estimated_duration || null,
+    is_active !== undefined ? is_active : true,
+    paused_until || null
   ]);
 
   return res.status(201).json({ habit: rows[0] });
@@ -101,33 +141,57 @@ async function handlePost(req, res, userId) {
 
 // PUT - Atualizar hábito
 async function handlePut(req, res, userId) {
+  // Apply rate limiting for API endpoints
+  await apiLimiter(req, res, () => {});
+
   const { habitId, ...updates } = req.body;
 
   if (!habitId) {
     return res.status(400).json({ error: 'habitId is required' });
   }
 
+  // Validate the updates using a partial schema
+  const updateData = { ...updates, userId, id: habitId };
+  const validation = validateWithSchema(HabitSchema.partial().extend({ 
+    id: HabitSchema.shape.id, 
+    userId: HabitSchema.shape.userId 
+  }), updateData);
+
+  if (!validation.success) {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: validation.errors 
+    });
+  }
+
+  const validatedUpdates = validation.data;
+
+  // Sanitize the update fields
+  const sanitizedUpdates = sanitizeFields(validatedUpdates, ['title', 'description', 'cue', 'reward']);
+
   // Construir query dinâmica baseada nos campos fornecidos
   const allowedFields = [
     'title',
     'description',
     'habit_type',
-    'frequency',
+    'frequency_type',
     'target_days_per_week',
     'preferred_time_of_day',
     'cue',
     'reward',
-    'is_active'
+    'estimated_duration',
+    'is_active',
+    'paused_until'
   ];
 
   const updateFields = [];
   const values = [userId, habitId];
   let paramIndex = 3;
 
-  Object.keys(updates).forEach(field => {
-    if (allowedFields.includes(field)) {
-      updateFields.push(`${field} = $${paramIndex}`);
-      values.push(updates[field]);
+  Object.keys(sanitizedUpdates).forEach(field => {
+    if (allowedFields.includes(field) && sanitizedUpdates[field] !== undefined) {
+      updateFields.push(`${field} = ${paramIndex}`);
+      values.push(sanitizedUpdates[field]);
       paramIndex++;
     }
   });
@@ -152,6 +216,9 @@ async function handlePut(req, res, userId) {
 
 // DELETE - Desativar hábito (soft delete)
 async function handleDelete(req, res, userId) {
+  // Apply rate limiting for API endpoints
+  await applyRateLimit(req, res);
+
   const { habitId } = req.body;
 
   if (!habitId) {
