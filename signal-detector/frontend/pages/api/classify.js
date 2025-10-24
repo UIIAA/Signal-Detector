@@ -1,5 +1,5 @@
 import { query } from '../../../shared/database/db';
-const SignalClassifier = require('../../../services/signal-processor/src/services/SignalClassifier');
+const SignalClassifier = require('../../src/services/SignalClassifier');
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
