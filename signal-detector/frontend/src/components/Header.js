@@ -188,6 +188,25 @@ export default function Header() {
           >
             Hábitos
           </Button>
+          <Button
+            color="inherit"
+            component={Link}
+            href="/kanban"
+            sx={{
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              backgroundColor: isActive('/kanban') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.5)',
+              }
+            }}
+          >
+            Kanban
+          </Button>
         </Box>
 
         {user && (
