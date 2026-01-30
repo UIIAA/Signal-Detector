@@ -127,4 +127,4 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default LeverageMatrix;
+export default React.memo(LeverageMatrix);
