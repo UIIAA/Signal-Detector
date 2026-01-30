@@ -109,6 +109,62 @@ export const FilterSchema = z.object({
   timeframe: z.enum(['day', 'week', 'month', 'all']).optional().default('week'),
 });
 
+// Kanban Task validation schemas
+export const CreateTaskSchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  titulo: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  descricao: z.string().max(1000).optional(),
+  projeto: z.string().max(100).optional().default('PESSOAL'),
+  categoria: z.string().max(100).optional().default('Geral'),
+  status: z.enum(['todo', 'progress', 'done']).optional().default('todo'),
+  prioridade: z.enum(['baixa', 'media', 'alta']).optional().default('media'),
+  gera_receita: z.boolean().optional().default(false),
+  urgente: z.boolean().optional().default(false),
+  importante: z.boolean().optional().default(false),
+  impacto: z.number().int().min(1).max(10).optional().default(5),
+  esforco: z.number().int().min(1).max(10).optional().default(5),
+  data_prevista: z.string().datetime().optional(),
+});
+
+export const UpdateTaskSchema = CreateTaskSchema.partial().extend({
+  id: z.string().min(1, 'Task ID is required'),
+  userId: z.string().min(1, 'User ID is required'),
+  ordem: z.number().int().optional(),
+});
+
+// Goal validation schemas (extended)
+export const CreateGoalSchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  description: z.string().max(1000).optional(),
+  target_value: z.number().optional(),
+  current_value: z.number().optional(),
+  goal_type: z.enum(['short', 'medium', 'long']).optional(),
+  ai_suggested: z.boolean().optional().default(false),
+  framework_type: z.enum(['none', 'okr', 'smart', 'habits', 'gtd', 'custom']).optional().default('none'),
+  framework_data: z.any().optional(), // JSON data
+  status: z.enum(['active', 'paused', 'completed', 'archived']).optional().default('active'),
+  due_date: z.string().datetime().optional(),
+});
+
+export const UpdateGoalSchema = CreateGoalSchema.partial().extend({
+  id: z.string().min(1, 'Goal ID is required'),
+  userId: z.string().min(1, 'User ID is required'),
+});
+
+// Activity Classification validation schema
+export const ClassifyActivitySchema = z.object({
+  userId: z.string().min(1, 'User ID is required'),
+  description: z.string().min(1, 'Description is required').max(1000, 'Description too long'),
+  duration_minutes: z.number().int().min(1).max(1440).optional(),
+  impact: z.number().min(1).max(10).optional(),
+  effort: z.number().min(1).max(10).optional(),
+  energy_before: z.number().min(1).max(10).optional(),
+  energy_after: z.number().min(1).max(10).optional(),
+  context: z.string().max(500).optional(),
+  tags: z.array(z.string()).optional(),
+});
+
 // Export schema validation functions
 export const validateWithSchema = (schema, data) => {
   try {

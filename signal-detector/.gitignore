@@ -1,0 +1,65 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets & Credentials
+.secrets
+credentials.json
+private_key.json
+*.pem
+*.key
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+*.npm
+.npm
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.jest/
+*.test.js
+*.spec.js
+
+# OS
+Thumbs.db
+.DS_Store
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Dependencies lock files (optional - uncomment if needed)
+# package-lock.json
+# yarn.lock
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cache
+.cache/
+.eslintcache
+
+# Production build files
+.vercel
