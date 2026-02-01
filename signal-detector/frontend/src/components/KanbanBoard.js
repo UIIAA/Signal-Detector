@@ -28,6 +28,7 @@ import {
   CircularProgress,
   Fab
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   CheckCircle,
   Schedule,
@@ -40,22 +41,15 @@ import {
   Edit,
   Delete,
   AutoAwesome,
-  Refresh
+  Refresh,
+  Upload
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { createKanbanService } from '../services/KanbanService';
-
-// Cores por projeto
-const PROJECT_COLORS = {
-  DEFENZ: { main: '#FF6B35', light: '#FFE5DB', text: '#B84315' },
-  CONNECT: { main: '#45B7D1', light: '#DDF4F9', text: '#2B7A8C' },
-  GRAFONO: { main: '#4ECDC4', light: '#D9F5F3', text: '#2D8A83' },
-  PEC: { main: '#96CEB4', light: '#E8F5EE', text: '#5A8A6E' },
-  PESSOAL: { main: '#DDA0DD', light: '#F5E6F5', text: '#8B668B' },
-};
+import ImportTasksDialog from './kanban/ImportTasksDialog';
 
 const PROJECTS = ['DEFENZ', 'CONNECT', 'GRAFONO', 'PEC', 'PESSOAL'];
-const CATEGORIES = ['Vendas', 'Marketing', 'Produto', 'Estrutura', 'Admin', 'Pipeline', 'Zoho', 'Projeto', 'Decisão', 'Compromisso', 'Geral'];
+const CATEGORIES = ['Vendas', 'Marketing', 'Produto', 'Estrutura', 'Admin', 'Pipeline', 'Zoho', 'Projeto', 'Decisao', 'Compromisso', 'Geral'];
 
 const emptyTask = {
   titulo: '',
@@ -74,6 +68,7 @@ const emptyTask = {
 
 const KanbanBoard = () => {
   const { user, fetchWithAuth } = useAuth();
+  const theme = useTheme();
 
   // Initialize KanbanService with fetchWithAuth
   const kanbanService = useMemo(() => createKanbanService(fetchWithAuth), [fetchWithAuth]);
@@ -94,11 +89,12 @@ const KanbanBoard = () => {
   const [saving, setSaving] = useState(false);
   const [classifying, setClassifying] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const columns = [
-    { id: 'todo', title: 'A Fazer', icon: Schedule, color: '#64748b' },
-    { id: 'progress', title: 'Em Progresso', icon: PlayArrow, color: '#3b82f6' },
-    { id: 'done', title: 'Concluído', icon: CheckCircle, color: '#10b981' },
+    { id: 'todo', title: 'A Fazer', icon: Schedule, color: 'text.secondary' },
+    { id: 'progress', title: 'Em Progresso', icon: PlayArrow, color: 'info.main' },
+    { id: 'done', title: 'Concluido', icon: CheckCircle, color: 'signal.main' },
   ];
 
   // Carregar tarefas
@@ -128,7 +124,7 @@ const KanbanBoard = () => {
     if (filterPriority !== 'all' && task.prioridade !== filterPriority) return false;
     if (filterReceita && !task.gera_receita) return false;
     if (filterSignal === 'sinal' && task.classificacao !== 'SINAL') return false;
-    if (filterSignal === 'ruido' && task.classificacao !== 'RUÍDO') return false;
+    if (filterSignal === 'ruido' && task.classificacao !== 'RUIDO') return false;
     return true;
   });
 
@@ -190,7 +186,7 @@ const KanbanBoard = () => {
 
   const handleSave = async () => {
     if (!formData.titulo.trim()) {
-      setSnackbar({ open: true, message: 'Título é obrigatório', severity: 'error' });
+      setSnackbar({ open: true, message: 'Titulo e obrigatorio', severity: 'error' });
       return;
     }
 
@@ -221,7 +217,7 @@ const KanbanBoard = () => {
     try {
       await kanbanService.deleteTask(taskId);
       setTasks(prev => prev.filter(t => t.id !== taskId));
-      setSnackbar({ open: true, message: 'Tarefa excluída!', severity: 'success' });
+      setSnackbar({ open: true, message: 'Tarefa excluida!', severity: 'success' });
       loadTasks();
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -245,6 +241,8 @@ const KanbanBoard = () => {
 
   const progress = stats.total > 0 ? (stats.done / stats.total) * 100 : 0;
 
+  const projectColors = theme.palette.projects;
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
@@ -259,7 +257,7 @@ const KanbanBoard = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
           <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
-            Kanban - Classificação SINAL/RUÍDO
+            Kanban - Classificacao SINAL/RUIDO
           </Typography>
           <Typography variant="body1" color="text.secondary">
             Projeto "Eu Mesmo" - Foque no que realmente importa
@@ -269,6 +267,9 @@ const KanbanBoard = () => {
           <Button variant="outlined" startIcon={<Refresh />} onClick={loadTasks}>
             Atualizar
           </Button>
+          <Button variant="outlined" startIcon={<Upload />} onClick={() => setImportDialogOpen(true)}>
+            Importar
+          </Button>
           <Button variant="contained" startIcon={<Add />} onClick={openCreateDialog}>
             Nova Tarefa
           </Button>
@@ -277,43 +278,49 @@ const KanbanBoard = () => {
 
       {/* Stats Cards */}
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 2, mb: 3 }}>
-        <Card>
+        <Card sx={{ borderRadius: 2 }}>
           <CardContent sx={{ textAlign: 'center', py: 2 }}>
             <Typography variant="body2" color="text.secondary">Total</Typography>
             <Typography variant="h4" fontWeight="bold">{stats.total}</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ borderLeft: '4px solid #10b981' }}>
-          <CardContent sx={{ textAlign: 'center', py: 2 }}>
-            <Typography variant="body2" color="text.secondary">Concluídas</Typography>
-            <Typography variant="h4" fontWeight="bold" color="#10b981">{stats.done}</Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ borderLeft: '4px solid #10b981' }}>
+        <Card sx={{ borderRadius: 2 }}>
           <CardContent sx={{ textAlign: 'center', py: 2 }}>
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
-              <TrendingUp sx={{ color: '#10b981', fontSize: 20 }} />
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'signal.main' }} />
+              <Typography variant="body2" color="text.secondary">Concluidas</Typography>
+            </Stack>
+            <Typography variant="h4" fontWeight="bold" color="signal.main">{stats.done}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ borderRadius: 2 }}>
+          <CardContent sx={{ textAlign: 'center', py: 2 }}>
+            <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'signal.main' }} />
+              <TrendingUp sx={{ color: 'signal.main', fontSize: 20 }} />
               <Typography variant="body2" color="text.secondary">SINAL</Typography>
             </Stack>
-            <Typography variant="h4" fontWeight="bold" color="#10b981">{stats.sinal}</Typography>
+            <Typography variant="h4" fontWeight="bold" color="signal.main">{stats.sinal}</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ borderLeft: '4px solid #ef4444' }}>
+        <Card sx={{ borderRadius: 2 }}>
           <CardContent sx={{ textAlign: 'center', py: 2 }}>
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
-              <TrendingDown sx={{ color: '#ef4444', fontSize: 20 }} />
-              <Typography variant="body2" color="text.secondary">RUÍDO</Typography>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'ruido.main' }} />
+              <TrendingDown sx={{ color: 'ruido.main', fontSize: 20 }} />
+              <Typography variant="body2" color="text.secondary">RUIDO</Typography>
             </Stack>
-            <Typography variant="h4" fontWeight="bold" color="#ef4444">{stats.ruido}</Typography>
+            <Typography variant="h4" fontWeight="bold" color="ruido.main">{stats.ruido}</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ borderLeft: '4px solid #f59e0b' }}>
+        <Card sx={{ borderRadius: 2 }}>
           <CardContent sx={{ textAlign: 'center', py: 2 }}>
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
-              <LocalFireDepartment sx={{ color: '#f59e0b', fontSize: 20 }} />
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'accent.main' }} />
+              <LocalFireDepartment sx={{ color: 'accent.main', fontSize: 20 }} />
               <Typography variant="body2" color="text.secondary">Receita</Typography>
             </Stack>
-            <Typography variant="h4" fontWeight="bold" color="#f59e0b">{stats.receita}</Typography>
+            <Typography variant="h4" fontWeight="bold" color="accent.main">{stats.receita}</Typography>
           </CardContent>
         </Card>
       </Box>
@@ -327,12 +334,12 @@ const KanbanBoard = () => {
         <LinearProgress
           variant="determinate"
           value={progress}
-          sx={{ height: 8, borderRadius: 4, bgcolor: '#e0e0e0', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }}
+          sx={{ height: 8, borderRadius: 4, bgcolor: 'divider', '& .MuiLinearProgress-bar': { bgcolor: 'signal.main' } }}
         />
       </Box>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: 2, mb: 3, border: 1, borderColor: 'divider', borderRadius: 2 }}>
         <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
           <FilterList color="action" />
           <Typography variant="body2" color="text.secondary" fontWeight="medium">Filtros:</Typography>
@@ -350,26 +357,26 @@ const KanbanBoard = () => {
             <Select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} label="Prioridade">
               <MenuItem value="all">Todas</MenuItem>
               <MenuItem value="alta">Alta</MenuItem>
-              <MenuItem value="media">Média</MenuItem>
+              <MenuItem value="media">Media</MenuItem>
               <MenuItem value="baixa">Baixa</MenuItem>
             </Select>
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Classificação</InputLabel>
-            <Select value={filterSignal} onChange={(e) => setFilterSignal(e.target.value)} label="Classificação">
+            <InputLabel>Classificacao</InputLabel>
+            <Select value={filterSignal} onChange={(e) => setFilterSignal(e.target.value)} label="Classificacao">
               <MenuItem value="all">Todas</MenuItem>
-              <MenuItem value="sinal">Só SINAL</MenuItem>
-              <MenuItem value="ruido">Só RUÍDO</MenuItem>
+              <MenuItem value="sinal">So SINAL</MenuItem>
+              <MenuItem value="ruido">So RUIDO</MenuItem>
             </Select>
           </FormControl>
 
           <FormControlLabel
-            control={<Switch checked={filterReceita} onChange={(e) => setFilterReceita(e.target.checked)} color="warning" />}
+            control={<Switch checked={filterReceita} onChange={(e) => setFilterReceita(e.target.checked)} />}
             label={
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <LocalFireDepartment sx={{ color: filterReceita ? '#f59e0b' : 'inherit', fontSize: 18 }} />
-                <Typography variant="body2">Só Receita</Typography>
+                <LocalFireDepartment sx={{ color: filterReceita ? 'accent.main' : 'inherit', fontSize: 18 }} />
+                <Typography variant="body2">So Receita</Typography>
               </Stack>
             }
           />
@@ -379,7 +386,7 @@ const KanbanBoard = () => {
       {/* Alert for SINAL tasks */}
       {stats.sinal > 0 && (
         <Alert severity="success" sx={{ mb: 3 }} icon={<TrendingUp />}>
-          <strong>{stats.sinal} tarefas SINAL</strong> identificadas! Foque nelas para máximo impacto.
+          <strong>{stats.sinal} tarefas SINAL</strong> identificadas! Foque nelas para maximo impacto.
         </Alert>
       )}
 
@@ -394,13 +401,16 @@ const KanbanBoard = () => {
               key={column.id}
               sx={{
                 p: 2,
-                bgcolor: column.id === 'done' ? '#f0fdf4' : column.id === 'progress' ? '#eff6ff' : '#f8fafc',
+                bgcolor: 'gray.50',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
                 minHeight: 400
               }}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, column.id)}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, pb: 2, borderBottom: `2px solid ${column.color}` }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Icon sx={{ color: column.color }} />
                 <Typography variant="h6" fontWeight="bold">{column.title}</Typography>
                 <Chip label={columnTasks.length} size="small" sx={{ ml: 'auto', bgcolor: column.color, color: 'white' }} />
@@ -408,7 +418,7 @@ const KanbanBoard = () => {
 
               <Stack spacing={1.5}>
                 {columnTasks.map(task => {
-                  const colors = PROJECT_COLORS[task.projeto] || { main: '#6b7280', light: '#f3f4f6', text: '#374151' };
+                  const colors = projectColors[task.projeto] || projectColors.PESSOAL;
 
                   return (
                     <Card
@@ -417,10 +427,11 @@ const KanbanBoard = () => {
                       onDragStart={(e) => handleDragStart(e, task)}
                       sx={{
                         cursor: 'move',
-                        borderLeft: `4px solid ${colors.main}`,
-                        bgcolor: colors.light,
-                        '&:hover': { boxShadow: 3, transform: 'translateY(-2px)' },
-                        transition: 'all 0.2s'
+                        borderLeft: `2px solid ${colors.main}`,
+                        borderRadius: 2,
+                        boxShadow: 1,
+                        '&:hover': { boxShadow: '0 2px 4px rgba(0,0,0,0.06)' },
+                        transition: 'box-shadow 0.2s'
                       }}
                     >
                       <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -433,7 +444,7 @@ const KanbanBoard = () => {
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             {task.gera_receita && (
                               <Tooltip title="Gera Receita">
-                                <LocalFireDepartment sx={{ color: '#f59e0b', fontSize: 18 }} />
+                                <LocalFireDepartment sx={{ color: 'accent.main', fontSize: 18 }} />
                               </Tooltip>
                             )}
                             <Tooltip title={`${task.classificacao} (Score: ${task.signal_score})`}>
@@ -441,7 +452,7 @@ const KanbanBoard = () => {
                                 label={task.classificacao || 'NEUTRO'}
                                 size="small"
                                 sx={{
-                                  bgcolor: task.classificacao === 'SINAL' ? '#10b981' : task.classificacao === 'RUÍDO' ? '#ef4444' : '#f59e0b',
+                                  bgcolor: task.classificacao === 'SINAL' ? 'signal.main' : task.classificacao === 'RUIDO' ? 'ruido.main' : 'neutral.main',
                                   color: 'white',
                                   fontSize: '0.65rem',
                                   height: 18,
@@ -495,10 +506,10 @@ const KanbanBoard = () => {
       </Box>
 
       {/* Legend */}
-      <Paper sx={{ p: 2, mt: 3 }}>
+      <Paper sx={{ p: 2, mt: 3, border: 1, borderColor: 'divider', borderRadius: 2 }}>
         <Stack direction="row" alignItems="center" spacing={3} flexWrap="wrap">
           <Typography variant="body2" color="text.secondary" fontWeight="medium">Legenda:</Typography>
-          {Object.entries(PROJECT_COLORS).map(([name, colors]) => (
+          {Object.entries(projectColors).map(([name, colors]) => (
             <Stack key={name} direction="row" alignItems="center" spacing={0.5}>
               <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: colors.main }} />
               <Typography variant="caption">{name}</Typography>
@@ -508,19 +519,19 @@ const KanbanBoard = () => {
       </Paper>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
         <DialogTitle>{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-              label="Título"
+              label="Titulo"
               value={formData.titulo}
               onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
               fullWidth
               required
             />
             <TextField
-              label="Descrição"
+              label="Descricao"
               value={formData.descricao}
               onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
               fullWidth
@@ -546,7 +557,7 @@ const KanbanBoard = () => {
                 <InputLabel>Prioridade</InputLabel>
                 <Select value={formData.prioridade} onChange={(e) => setFormData({ ...formData, prioridade: e.target.value })} label="Prioridade">
                   <MenuItem value="alta">Alta</MenuItem>
-                  <MenuItem value="media">Média</MenuItem>
+                  <MenuItem value="media">Media</MenuItem>
                   <MenuItem value="baixa">Baixa</MenuItem>
                 </Select>
               </FormControl>
@@ -555,7 +566,7 @@ const KanbanBoard = () => {
                 <Select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} label="Status">
                   <MenuItem value="todo">A Fazer</MenuItem>
                   <MenuItem value="progress">Em Progresso</MenuItem>
-                  <MenuItem value="done">Concluído</MenuItem>
+                  <MenuItem value="done">Concluido</MenuItem>
                 </Select>
               </FormControl>
             </Stack>
@@ -565,7 +576,7 @@ const KanbanBoard = () => {
                 <Slider value={formData.impacto} onChange={(e, v) => setFormData({ ...formData, impacto: v })} min={1} max={10} marks />
               </Box>
               <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" gutterBottom>Esforço: {formData.esforco}</Typography>
+                <Typography variant="body2" gutterBottom>Esforco: {formData.esforco}</Typography>
                 <Slider value={formData.esforco} onChange={(e, v) => setFormData({ ...formData, esforco: v })} min={1} max={10} marks />
               </Box>
             </Stack>
@@ -605,6 +616,17 @@ const KanbanBoard = () => {
       <Fab color="primary" sx={{ position: 'fixed', bottom: 24, right: 24 }} onClick={openCreateDialog}>
         <Add />
       </Fab>
+
+      {/* Import Dialog */}
+      <ImportTasksDialog
+        open={importDialogOpen}
+        onClose={() => setImportDialogOpen(false)}
+        onImportComplete={(count) => {
+          setSnackbar({ open: true, message: `${count} tarefa${count !== 1 ? 's' : ''} importada${count !== 1 ? 's' : ''}!`, severity: 'success' });
+          loadTasks();
+        }}
+        fetchWithAuth={fetchWithAuth}
+      />
 
       {/* Snackbar */}
       <Snackbar
