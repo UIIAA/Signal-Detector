@@ -1,253 +1,222 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Divider from '@mui/material/Divider';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import HomeIcon from '@mui/icons-material/Home';
+import FlagIcon from '@mui/icons-material/Flag';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import RouteIcon from '@mui/icons-material/Route';
+import RepeatIcon from '@mui/icons-material/Repeat';
+import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { AccountCircle, Logout } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+
+const navItems = [
+  { label: 'Home', href: '/', icon: <HomeIcon /> },
+  { label: 'Objetivos', href: '/goals', icon: <FlagIcon /> },
+  { label: 'Dashboard', href: '/dashboard', icon: <DashboardIcon /> },
+  { label: 'Rota Critica', href: '/critical-path', icon: <RouteIcon /> },
+  { label: 'Habitos', href: '/habits', icon: <RepeatIcon /> },
+  { label: 'Kanban', href: '/kanban', icon: <ViewKanbanIcon /> },
+];
 
 export default function Header() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isActive = (pathname) => router.pathname === pathname;
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
   const handleLogout = () => {
     logout();
-    handleClose();
+    setDrawerOpen(false);
     router.push('/login');
   };
 
   return (
-    <AppBar
-      position="static"
-      sx={{
-        mb: 4,
-        background: 'linear-gradient(135deg, #6366f1 0%, #8b8cf8 100%)',
-        boxShadow: '0 4px 20px rgba(99, 102, 241, 0.25)',
-      }}
-    >
-      <Toolbar sx={{ px: { xs: 2, md: 4 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            mr: 1,
-            p: 1,
-            borderRadius: 2,
-            backgroundColor: 'rgba(255, 255, 255, 0.1)'
-          }}>
-            <TrendingUpIcon sx={{ fontSize: 28, color: 'white' }} />
+    <>
+      <AppBar position="sticky" sx={{ mb: 0 }}>
+        <Toolbar sx={{ px: { xs: 2, md: 4 } }}>
+          {/* Logo */}
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
+            <TrendingUpIcon sx={{ fontSize: 24, color: '#FF3B30', mr: 1 }} />
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                color: '#1D1D1F',
+                fontSize: '1.1rem',
+              }}
+            >
+              Signal Detector
+            </Typography>
           </Box>
-          <Typography
-            variant="h5"
-            component="div"
-            sx={{
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
-              color: 'white'
-            }}
-          >
-            Signal Detector
-          </Typography>
+
+          {/* Desktop Nav */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, flexGrow: 1 }}>
+            {navItems.map((item) => (
+              <Button
+                key={item.href}
+                component={Link}
+                href={item.href}
+                sx={{
+                  color: isActive(item.href) ? '#FF3B30' : '#1D1D1F',
+                  fontWeight: isActive(item.href) ? 600 : 400,
+                  fontSize: '0.875rem',
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                  borderBottom: isActive(item.href) ? '2px solid #FF3B30' : '2px solid transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 59, 48, 0.06)',
+                  },
+                }}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </Box>
+
+          {/* Desktop User */}
+          {user && (
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" sx={{ color: '#86868B' }}>
+                {user.name}
+              </Typography>
+              <IconButton size="small" onClick={handleLogout} sx={{ color: '#86868B' }}>
+                <Logout fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+
+          {/* Mobile Hamburger */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, flexGrow: 1, justifyContent: 'flex-end' }}>
+            <IconButton onClick={() => setDrawerOpen(true)} sx={{ color: '#1D1D1F' }}>
+              <MenuIcon />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 280,
+            backgroundColor: '#FFFFFF',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <TrendingUpIcon sx={{ fontSize: 20, color: '#FF3B30', mr: 1 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1D1D1F' }}>
+              Signal Detector
+            </Typography>
+          </Box>
+          <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: '#86868B' }}>
+            <CloseIcon />
+          </IconButton>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }}
-          >
-            Home
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/goals"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/goals') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }}
-          >
-            Objetivos
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/record"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/record') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }}
-          >
-            Áudio
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/text-entry"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/text-entry') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }}
-          >
-            Texto
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/dashboard"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/dashboard') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }}
-          >
-            Dashboard
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/critical-path"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/critical-path') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }}
-          >
-            Rota Crítica
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/habits"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/habits') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }}
-          >
-            Hábitos
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            href="/kanban"
-            sx={{
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              backgroundColor: isActive('/kanban') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                border: '1px solid rgba(255, 255, 255, 0.5)',
-              }
-            }}
-          >
-            Kanban
-          </Button>
-        </Box>
+        <Divider />
 
         {user && (
-          <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-            <Typography variant="body2" sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}>
-              {user.name}
-            </Typography>
-            <IconButton
-              size="large"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={handleClose}>
-                <Typography variant="body2" color="text.secondary">
+          <Box sx={{ px: 2, py: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <AccountCircle sx={{ fontSize: 32, color: '#86868B' }} />
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#1D1D1F' }}>
+                  {user.name}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#86868B' }}>
                   {user.email}
                 </Typography>
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                <Logout sx={{ mr: 1, fontSize: 18 }} />
-                Sair
-              </MenuItem>
-            </Menu>
+              </Box>
+            </Box>
           </Box>
         )}
-      </Toolbar>
-    </AppBar>
+
+        <Divider />
+
+        <List sx={{ px: 1, py: 1 }}>
+          {navItems.map((item) => (
+            <ListItem key={item.href} disablePadding>
+              <ListItemButton
+                component={Link}
+                href={item.href}
+                onClick={() => setDrawerOpen(false)}
+                selected={isActive(item.href)}
+                sx={{
+                  borderRadius: 2,
+                  mb: 0.5,
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(255, 59, 48, 0.08)',
+                    color: '#FF3B30',
+                    '& .MuiListItemIcon-root': {
+                      color: '#FF3B30',
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 59, 48, 0.04)',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: isActive(item.href) ? '#FF3B30' : '#86868B' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontSize: '0.9rem',
+                    fontWeight: isActive(item.href) ? 600 : 400,
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+
+        <Box sx={{ flexGrow: 1 }} />
+
+        <Divider />
+        <Box sx={{ p: 2 }}>
+          <Button
+            fullWidth
+            onClick={handleLogout}
+            startIcon={<Logout />}
+            sx={{
+              color: '#FF3B30',
+              justifyContent: 'flex-start',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 59, 48, 0.06)',
+              },
+            }}
+          >
+            Sair
+          </Button>
+        </Box>
+      </Drawer>
+    </>
   );
 }

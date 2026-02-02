@@ -1,14 +1,10 @@
 import React from 'react';
 import Header from '../src/components/Header';
 import ProtectedRoute from '../src/components/ProtectedRoute';
-import { Container, Typography, Grid, Card, CardContent, CardActions, Button, Box, Chip, Stack } from '@mui/material';
-import MicIcon from '@mui/icons-material/Mic';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet';
-import DashboardIcon from '@mui/icons-material/Dashboard';
+import { Container, Typography, Grid, Card, CardContent, Button, Box } from '@mui/material';
+import FlagIcon from '@mui/icons-material/Flag';
 import InsightsIcon from '@mui/icons-material/Insights';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
-import PsychologyIcon from '@mui/icons-material/Psychology';
+import TuneIcon from '@mui/icons-material/Tune';
 
 export default function Home() {
   return (
@@ -22,39 +18,36 @@ export default function Home() {
             component="h1"
             gutterBottom
             sx={{
-              fontSize: { xs: '2.5rem', md: '4rem' },
+              fontSize: { xs: '2.5rem', md: '3.5rem' },
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: '#1D1D1F',
               mb: 2
             }}
           >
-            Rastreador de Sinal vs. Ruído
+            Rastreador de Sinal vs. Ruido
           </Typography>
           <Typography
             variant="h6"
-            color="text.secondary"
             paragraph
             sx={{
               maxWidth: '700px',
               mx: 'auto',
               fontWeight: 400,
               lineHeight: 1.6,
-              fontSize: '1.1rem'
+              fontSize: '1.1rem',
+              color: '#86868B'
             }}
           >
             Diferencie o que importa do que apenas distrai. Foque no progresso real.
             Use IA para classificar suas atividades e otimizar sua produtividade.
           </Typography>
         </Box>
-        
-        {/* Seções principais seguindo o padrão do Modelo Gemini */}
-        <Box sx={{ my: 8, space: 6 }}>
+
+        {/* Secoes principais */}
+        <Box sx={{ my: 8 }}>
 
           {/* 1. Definir Objetivos */}
-          <Card sx={{ mb: 6, backgroundColor: 'background.paper' }}>
+          <Card sx={{ mb: 4 }}>
             <CardContent sx={{ p: 4 }}>
               <Typography
                 variant="h4"
@@ -70,33 +63,29 @@ export default function Home() {
                     width: 40,
                     height: 40,
                     borderRadius: '50%',
-                    backgroundColor: '#60a5fa',
+                    backgroundColor: '#1D1D1F',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     mr: 3,
-                    fontWeight: 700
+                    fontWeight: 700,
+                    fontSize: '1rem'
                   }}
                 >
                   1
                 </Box>
                 Defina Seus Objetivos Principais
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4, ml: 7 }}>
-                Estabeleça metas claras de curto, médio e longo prazo. Objetivos bem definidos ajudam a identificar sinais de progresso real.
+              <Typography variant="body1" sx={{ mb: 4, ml: 7, color: '#86868B' }}>
+                Estabeleca metas claras de curto, medio e longo prazo. Objetivos bem definidos ajudam a identificar sinais de progresso real.
               </Typography>
               <Box sx={{ ml: 7 }}>
                 <Button
                   variant="contained"
                   href="/goals"
                   size="large"
-                  sx={{
-                    background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 100%)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #3b82f6 0%, #9333ea 100%)'
-                    }
-                  }}
+                  sx={{ backgroundColor: '#FF3B30', '&:hover': { backgroundColor: '#C4291F' } }}
                 >
                   Definir Objetivos
                 </Button>
@@ -104,8 +93,8 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* 2. Registrar Atividades */}
-          <Card sx={{ mb: 6, backgroundColor: 'background.paper' }}>
+          {/* 2. Analise Seu Progresso */}
+          <Card sx={{ mb: 4 }}>
             <CardContent sx={{ p: 4 }}>
               <Typography
                 variant="h4"
@@ -121,119 +110,22 @@ export default function Home() {
                     width: 40,
                     height: 40,
                     borderRadius: '50%',
-                    backgroundColor: '#a855f7',
+                    backgroundColor: '#1D1D1F',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     mr: 3,
-                    fontWeight: 700
+                    fontWeight: 700,
+                    fontSize: '1rem'
                   }}
                 >
                   2
                 </Box>
-                Registre Suas Atividades
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4, ml: 7 }}>
-                Documente suas atividades usando voz ou texto. Nossa IA analisa e classifica automaticamente como sinais ou ruídos.
-              </Typography>
-
-              <Grid container spacing={3} sx={{ ml: 4 }}>
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ backgroundColor: 'background.default', border: '1px solid #374151' }}>
-                    <CardContent sx={{ p: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <MicIcon sx={{ fontSize: 24, color: '#10b981', mr: 2 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          Por Voz
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        Grave suas atividades e deixe a IA transcrever e analisar automaticamente os níveis de energia.
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        href="/record"
-                        sx={{
-                          borderColor: '#10b981',
-                          color: '#10b981',
-                          '&:hover': {
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            borderColor: '#10b981'
-                          }
-                        }}
-                      >
-                        Gravar Áudio
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ backgroundColor: 'background.default', border: '1px solid #374151' }}>
-                    <CardContent sx={{ p: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <TextSnippetIcon sx={{ fontSize: 24, color: '#f59e0b', mr: 2 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          Por Texto
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        Digite suas atividades e forneça informações de contexto para uma classificação mais precisa.
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        href="/text-entry"
-                        sx={{
-                          borderColor: '#f59e0b',
-                          color: '#f59e0b',
-                          '&:hover': {
-                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                            borderColor: '#f59e0b'
-                          }
-                        }}
-                      >
-                        Registrar Texto
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* 3. Analisar Progresso */}
-          <Card sx={{ mb: 6, backgroundColor: 'background.paper' }}>
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 600,
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    backgroundColor: '#f59e0b',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 3,
-                    fontWeight: 700
-                  }}
-                >
-                  3
-                </Box>
                 Analise Seu Progresso
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4, ml: 7 }}>
-                Visualize métricas de produtividade, gráficos de progresso e receba insights personalizados da IA.
+              <Typography variant="body1" sx={{ mb: 4, ml: 7, color: '#86868B' }}>
+                Visualize metricas de produtividade, graficos de progresso e receba insights personalizados da IA.
               </Typography>
               <Box sx={{ ml: 7 }}>
                 <Button
@@ -241,12 +133,7 @@ export default function Home() {
                   href="/dashboard"
                   size="large"
                   startIcon={<InsightsIcon />}
-                  sx={{
-                    backgroundColor: '#f59e0b',
-                    '&:hover': {
-                      backgroundColor: '#d97706'
-                    }
-                  }}
+                  sx={{ backgroundColor: '#FF3B30', '&:hover': { backgroundColor: '#C4291F' } }}
                 >
                   Ver Dashboard
                 </Button>
@@ -254,14 +141,69 @@ export default function Home() {
             </CardContent>
           </Card>
 
+          {/* 3. Otimize */}
+          <Card sx={{ mb: 4 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 600,
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor: '#1D1D1F',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mr: 3,
+                    fontWeight: 700,
+                    fontSize: '1rem'
+                  }}
+                >
+                  3
+                </Box>
+                Otimize Sua Rotina
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 4, ml: 7, color: '#86868B' }}>
+                Acompanhe habitos, defina rotas criticas e use o Kanban para organizar suas tarefas com classificacao de sinal e ruido.
+              </Typography>
+              <Box sx={{ ml: 7, display: 'flex', gap: 2 }}>
+                <Button
+                  variant="contained"
+                  href="/habits"
+                  size="large"
+                  sx={{ backgroundColor: '#FF3B30', '&:hover': { backgroundColor: '#C4291F' } }}
+                >
+                  Habitos
+                </Button>
+                <Button
+                  variant="outlined"
+                  href="/kanban"
+                  size="large"
+                  sx={{ borderColor: '#1D1D1F', color: '#1D1D1F' }}
+                >
+                  Kanban
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+
         </Box>
-        
+
         <Box sx={{
           my: 8,
           py: 6,
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(139, 140, 248, 0.05) 100%)',
+          backgroundColor: '#FFFFFF',
           borderRadius: 3,
-          border: '1px solid rgba(99, 102, 241, 0.08)'
+          border: '1px solid rgba(0, 0, 0, 0.06)'
         }}>
           <Typography
             variant="h3"
@@ -270,7 +212,7 @@ export default function Home() {
               textAlign: 'center',
               fontWeight: 600,
               mb: 2,
-              color: 'text.primary'
+              color: '#1D1D1F'
             }}
           >
             Como funciona?
@@ -279,7 +221,7 @@ export default function Home() {
             variant="body1"
             sx={{
               textAlign: 'center',
-              color: 'text.secondary',
+              color: '#86868B',
               mb: 6,
               maxWidth: '500px',
               mx: 'auto'
@@ -292,26 +234,23 @@ export default function Home() {
             <Grid item xs={12} md={4}>
               <Box sx={{ textAlign: 'center' }}>
                 <Box sx={{
-                  width: 80,
-                  height: 80,
+                  width: 72,
+                  height: 72,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #8b8cf8 100%)',
+                  backgroundColor: '#1D1D1F',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mx: 'auto',
                   mb: 3,
-                  boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)'
                 }}>
-                  <Typography variant="h4" sx={{ color: 'white', fontWeight: 700 }}>
-                    1
-                  </Typography>
+                  <FlagIcon sx={{ color: 'white', fontSize: 32 }} />
                 </Box>
-                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
-                  Registre
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2, color: '#1D1D1F' }}>
+                  Objetivos
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  Use o recurso de voz ou digite manualmente para registrar suas atividades diárias de forma rápida e intuitiva.
+                <Typography variant="body1" sx={{ lineHeight: 1.6, color: '#86868B' }}>
+                  Defina objetivos claros de curto, medio e longo prazo para orientar suas atividades diarias.
                 </Typography>
               </Box>
             </Grid>
@@ -319,26 +258,23 @@ export default function Home() {
             <Grid item xs={12} md={4}>
               <Box sx={{ textAlign: 'center' }}>
                 <Box sx={{
-                  width: 80,
-                  height: 80,
+                  width: 72,
+                  height: 72,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+                  backgroundColor: '#1D1D1F',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mx: 'auto',
                   mb: 3,
-                  boxShadow: '0 8px 32px rgba(16, 185, 129, 0.3)'
                 }}>
-                  <Typography variant="h4" sx={{ color: 'white', fontWeight: 700 }}>
-                    2
-                  </Typography>
+                  <InsightsIcon sx={{ color: 'white', fontSize: 32 }} />
                 </Box>
-                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
-                  Classifique
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2, color: '#1D1D1F' }}>
+                  Analise
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  Nossa IA avançada classifica automaticamente suas atividades como Sinais produtivos ou Ruídos desnecessários.
+                <Typography variant="body1" sx={{ lineHeight: 1.6, color: '#86868B' }}>
+                  Nossa IA classifica suas atividades como Sinais produtivos ou Ruidos desnecessarios automaticamente.
                 </Typography>
               </Box>
             </Grid>
@@ -346,36 +282,33 @@ export default function Home() {
             <Grid item xs={12} md={4}>
               <Box sx={{ textAlign: 'center' }}>
                 <Box sx={{
-                  width: 80,
-                  height: 80,
+                  width: 72,
+                  height: 72,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+                  backgroundColor: '#1D1D1F',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mx: 'auto',
                   mb: 3,
-                  boxShadow: '0 8px 32px rgba(59, 130, 246, 0.3)'
                 }}>
-                  <Typography variant="h4" sx={{ color: 'white', fontWeight: 700 }}>
-                    3
-                  </Typography>
+                  <TuneIcon sx={{ color: 'white', fontSize: 32 }} />
                 </Box>
-                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2, color: '#1D1D1F' }}>
                   Otimize
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  Receba insights personalizados e estratégias inteligentes para maximizar sua produtividade e alcançar seus objetivos.
+                <Typography variant="body1" sx={{ lineHeight: 1.6, color: '#86868B' }}>
+                  Receba insights personalizados e estrategias inteligentes para maximizar sua produtividade.
                 </Typography>
               </Box>
             </Grid>
           </Grid>
         </Box>
 
-        {/* Footer inspirado no Modelo Gemini */}
+        {/* Footer */}
         <Box sx={{ textAlign: 'center', mt: 10, mb: 4 }}>
-          <Typography variant="body2" color="text.secondary">
-            Construído para focar no que realmente importa.
+          <Typography variant="body2" sx={{ color: '#86868B' }}>
+            Construido para focar no que realmente importa.
           </Typography>
         </Box>
       </Container>

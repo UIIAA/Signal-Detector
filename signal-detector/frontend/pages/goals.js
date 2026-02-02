@@ -438,21 +438,21 @@ export default function Goals() {
       short: {
         title: 'Objetivos de Curto Prazo',
         subtitle: '0-3 meses',
-        color: '#10b981',
+        color: '#1D1D1F',
         icon: <ScheduleIcon sx={{ fontSize: 28 }} />,
         description: 'Metas que você pode alcançar nos próximos 3 meses'
       },
       medium: {
         title: 'Objetivos de Médio Prazo',
         subtitle: '3-12 meses',
-        color: '#f59e0b',
+        color: '#1D1D1F',
         icon: <CalendarTodayIcon sx={{ fontSize: 28 }} />,
         description: 'Objetivos que requerem planejamento e constância ao longo do ano'
       },
       long: {
         title: 'Objetivos de Longo Prazo',
         subtitle: '1+ anos',
-        color: '#a855f7',
+        color: '#1D1D1F',
         icon: <DateRangeIcon sx={{ fontSize: 28 }} />,
         description: 'Visões de futuro e grandes aspirações que guiam suas decisões'
       }
@@ -480,10 +480,7 @@ export default function Goals() {
             gutterBottom
             sx={{
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: '#1D1D1F',
               mb: 2
             }}
           >
@@ -561,9 +558,9 @@ export default function Goals() {
                     startIcon={<AddIcon />}
                     sx={{
                       py: 1.5,
-                      background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 100%)',
+                      backgroundColor: '#FF3B30',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #9333ea 100%)'
+                        backgroundColor: '#C4291F'
                       }
                     }}
                   >
@@ -578,7 +575,7 @@ export default function Goals() {
             <Card sx={{ backgroundColor: 'background.paper', height: '100%' }}>
               <CardContent sx={{ p: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <PsychologyIcon sx={{ fontSize: 32, color: '#10b981', mr: 2 }} />
+                  <PsychologyIcon sx={{ fontSize: 32, color: '#1D1D1F', mr: 2 }} />
                   <Typography variant="h5" sx={{ fontWeight: 600 }}>
                     Assistente IA
                   </Typography>
@@ -592,10 +589,10 @@ export default function Goals() {
                   <Box sx={{
                     p: 2,
                     borderRadius: 2,
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    border: '1px solid rgba(16, 185, 129, 0.2)'
+                    backgroundColor: 'rgba(29, 29, 31, 0.05)',
+                    border: '1px solid rgba(29, 29, 31, 0.1)'
                   }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#10b981', mb: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#1D1D1F', mb: 1 }}>
                       ✨ O que a IA pode fazer:
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -613,11 +610,11 @@ export default function Goals() {
                     startIcon={<AutoAwesomeIcon />}
                     sx={{
                       py: 1.5,
-                      borderColor: '#10b981',
-                      color: '#10b981',
+                      borderColor: '#1D1D1F',
+                      color: '#1D1D1F',
                       '&:hover': {
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderColor: '#10b981'
+                        backgroundColor: 'rgba(29, 29, 31, 0.1)',
+                        borderColor: '#1D1D1F'
                       }
                     }}
                   >
@@ -779,7 +776,7 @@ export default function Goals() {
         >
           <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <PsychologyIcon sx={{ fontSize: 28, color: '#10b981', mr: 2 }} />
+              <PsychologyIcon sx={{ fontSize: 28, color: '#1D1D1F', mr: 2 }} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Assistente IA para Objetivos
               </Typography>
@@ -924,9 +921,9 @@ export default function Goals() {
 
                 <Stack spacing={4}>
                   {[
-                    { type: 'short', title: 'Curto Prazo (0-3 meses)', goals: aiSuggestions.shortTerm, color: '#10b981' },
-                    { type: 'medium', title: 'Médio Prazo (3-12 meses)', goals: aiSuggestions.mediumTerm, color: '#f59e0b' },
-                    { type: 'long', title: 'Longo Prazo (1+ anos)', goals: aiSuggestions.longTerm, color: '#a855f7' }
+                    { type: 'short', title: 'Curto Prazo (0-3 meses)', goals: aiSuggestions.shortTerm, color: '#1D1D1F' },
+                    { type: 'medium', title: 'Médio Prazo (3-12 meses)', goals: aiSuggestions.mediumTerm, color: '#1D1D1F' },
+                    { type: 'long', title: 'Longo Prazo (1+ anos)', goals: aiSuggestions.longTerm, color: '#1D1D1F' }
                   ].map(({ type, title, goals, color }) => (
                     <Paper key={type} sx={{ p: 3, backgroundColor: 'background.default' }}>
                       <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color }}>
@@ -978,9 +975,9 @@ export default function Goals() {
                     aiAssistantStep === 4 && !aiAssistantData.challenges
                   )}
                   sx={{
-                    background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+                    backgroundColor: '#FF3B30',
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+                      backgroundColor: '#C4291F'
                     }
                   }}
                 >

@@ -15,7 +15,7 @@ export default function Kanban() {
 
       <Header />
 
-      <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pt: 2 }}>
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pt: 2 }}>
         <Container maxWidth="xl">
           <KanbanBoard />
         </Container>

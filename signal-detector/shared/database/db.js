@@ -60,12 +60,8 @@ async function getDb() {
         const pgModule = require('pg');
         Pool = pgModule.Pool;
       } catch (e) {
-        // In some build contexts, this may fail - that's expected for client builds
-        if (process.env.NODE_ENV === 'production' || typeof window === 'undefined') {
-          // This is expected in server environments
-          throw e;
-        }
-        // In client builds, this is okay to fail
+        console.error('Failed to load pg module:', e.code || e.message);
+        // Module not found - may happen during Next.js bundling
       }
       
       if (Pool) {
@@ -92,12 +88,8 @@ async function getDb() {
       try {
         SQLite3 = require('sqlite3');
       } catch (e) {
-        // In some build contexts, this may fail - that's expected for client builds
-        if (process.env.NODE_ENV === 'production' || typeof window === 'undefined') {
-          // This is expected in server environments
-          throw e;
-        }
-        // In client builds, this is okay to fail
+        console.error('Failed to load sqlite3 module:', e.code || e.message);
+        // Module not found - may happen during Next.js bundling
       }
       
       if (SQLite3) {

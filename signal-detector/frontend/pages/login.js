@@ -101,10 +101,7 @@ export default function Login() {
           gutterBottom
           sx={{
             fontWeight: 700,
-            background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 100%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
+            color: '#1D1D1F'
           }}
         >
           Sinal vs Ruído
@@ -177,9 +174,9 @@ export default function Login() {
                 startIcon={loading ? <CircularProgress size={20} /> : (mode === 'login' ? <LoginIcon /> : <PersonAddIcon />)}
                 sx={{
                   py: 1.5,
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #a855f7 100%)',
+                  backgroundColor: '#FF3B30',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #9333ea 100%)'
+                    backgroundColor: '#C4291F'
                   }
                 }}
               >
@@ -201,11 +198,11 @@ export default function Login() {
             disabled={loading}
             sx={{
               py: 1.5,
-              borderColor: '#10b981',
-              color: '#10b981',
+              borderColor: '#1D1D1F',
+              color: '#1D1D1F',
               '&:hover': {
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderColor: '#10b981'
+                backgroundColor: 'rgba(29, 29, 31, 0.1)',
+                borderColor: '#1D1D1F'
               }
             }}
           >
@@ -234,7 +231,7 @@ export default function Login() {
             </Typography>
           </Box>
 
-          <Box sx={{ mt: 4, p: 2, backgroundColor: 'rgba(16, 185, 129, 0.1)', borderRadius: 2 }}>
+          <Box sx={{ mt: 4, p: 2, backgroundColor: 'rgba(29, 29, 31, 0.05)', borderRadius: 2 }}>
             <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
               <strong>Sobre a autenticação:</strong>
             </Typography>

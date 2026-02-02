@@ -216,19 +216,19 @@ export default function Dashboard() {
 
   const getStatusColor = (type) => {
     switch (type) {
-      case 'signal': return '#10b981';
-      case 'noise': return '#ef4444';
-      case 'neutral': return '#f59e0b';
-      default: return '#6366f1';
+      case 'signal': return '#34C759';
+      case 'noise': return '#FF3B30';
+      case 'neutral': return '#86868B';
+      default: return '#1D1D1F';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return '#ef4444';
-      case 'medium': return '#f59e0b';
-      case 'low': return '#10b981';
-      default: return '#6366f1';
+      case 'high': return '#FF3B30';
+      case 'medium': return '#86868B';
+      case 'low': return '#1D1D1F';
+      default: return '#1D1D1F';
     }
   };
 
@@ -270,10 +270,10 @@ export default function Dashboard() {
 
   const getGoalTypeColor = (type) => {
     switch (type) {
-      case 'short': return '#10b981';
-      case 'medium': return '#f59e0b';
-      case 'long': return '#a855f7';
-      default: return '#60a5fa';
+      case 'short': return '#1D1D1F';
+      case 'medium': return '#1D1D1F';
+      case 'long': return '#1D1D1F';
+      default: return '#1D1D1F';
     }
   };
 
@@ -401,26 +401,21 @@ export default function Dashboard() {
               </Box>
             )}
             <Grid xs={12} sm={6} md={3}>
-              <Card sx={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b8cf8 100%)',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
+              <Card sx={{ borderLeft: '4px solid #1D1D1F' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box>
-                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#1D1D1F' }}>
                         {filteredAnalytics?.productivityScore || 0}%
                       </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      <Typography variant="body2" sx={{ color: '#86868B' }}>
                         Score de Produtividade
                       </Typography>
                     </Box>
-                    <TrendingUpIcon sx={{ fontSize: 40, opacity: 0.8 }} />
+                    <TrendingUpIcon sx={{ fontSize: 40, color: '#1D1D1F' }} />
                   </Box>
                   <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                    <Typography variant="caption" sx={{ color: '#34C759' }}>
                       +{filteredAnalytics?.weeklyGrowth || 0}% esta semana
                     </Typography>
                   </Box>
@@ -429,21 +424,21 @@ export default function Dashboard() {
             </Grid>
 
             <Grid xs={12} sm={6} md={3}>
-              <Card sx={{ background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', color: 'white' }}>
+              <Card sx={{ borderLeft: '4px solid #34C759' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box>
-                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#1D1D1F' }}>
                         {filteredAnalytics?.signalActivities || 0}
                       </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      <Typography variant="body2" sx={{ color: '#86868B' }}>
                         Sinais Detectados
                       </Typography>
                     </Box>
-                    <SignalIcon sx={{ fontSize: 40, opacity: 0.8 }} />
+                    <SignalIcon sx={{ fontSize: 40, color: '#34C759' }} />
                   </Box>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                    <Typography variant="caption" sx={{ color: '#86868B' }}>
                       {Math.round(((filteredAnalytics?.signalActivities || 0) / (filteredAnalytics?.totalActivities || 1)) * 100)}% do total
                     </Typography>
                   </Box>
@@ -452,21 +447,21 @@ export default function Dashboard() {
             </Grid>
 
             <Grid xs={12} sm={6} md={3}>
-              <Card sx={{ background: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)', color: 'white' }}>
+              <Card sx={{ borderLeft: '4px solid #FF3B30' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box>
-                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#1D1D1F' }}>
                         {filteredAnalytics?.noiseActivities || 0}
                       </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                        Ruídos Identificados
+                      <Typography variant="body2" sx={{ color: '#86868B' }}>
+                        Ruidos Identificados
                       </Typography>
                     </Box>
-                    <NoiseIcon sx={{ fontSize: 40, opacity: 0.8 }} />
+                    <NoiseIcon sx={{ fontSize: 40, color: '#FF3B30' }} />
                   </Box>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                    <Typography variant="caption" sx={{ color: '#86868B' }}>
                       {Math.round(((filteredAnalytics?.noiseActivities || 0) / (filteredAnalytics?.totalActivities || 1)) * 100)}% do total
                     </Typography>
                   </Box>
@@ -475,21 +470,21 @@ export default function Dashboard() {
             </Grid>
 
             <Grid xs={12} sm={6} md={3}>
-              <Card sx={{ background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)', color: 'white' }}>
+              <Card sx={{ borderLeft: '4px solid #86868B' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box>
-                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#1D1D1F' }}>
                         {filteredAnalytics?.insights?.streak || 0}
                       </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      <Typography variant="body2" sx={{ color: '#86868B' }}>
                         Dias Consecutivos
                       </Typography>
                     </Box>
-                    <ScheduleIcon sx={{ fontSize: 40, opacity: 0.8 }} />
+                    <ScheduleIcon sx={{ fontSize: 40, color: '#86868B' }} />
                   </Box>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                    <Typography variant="caption" sx={{ color: '#86868B' }}>
                       Meta: {filteredAnalytics?.insights?.todayGoal || 50}% hoje
                     </Typography>
                   </Box>
@@ -518,14 +513,14 @@ export default function Dashboard() {
                     <Area
                       type="monotone"
                       dataKey="productivity"
-                      stroke="#6366f1"
+                      stroke="#FF3B30"
                       fill="url(#colorProductivity)"
                       strokeWidth={3}
                     />
                     <defs>
                       <linearGradient id="colorProductivity" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#FF3B30" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#FF3B30" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
                   </AreaChart>
@@ -546,8 +541,8 @@ export default function Dashboard() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="impact" name="Progresso Real" stroke="#8884d8" />
-                    <Line type="monotone" data={filteredAnalytics?.progressComparison?.ideal || []} dataKey="impact" name="Progresso Ideal" stroke="#82ca9d" strokeDasharray="5 5" />
+                    <Line type="monotone" dataKey="impact" name="Progresso Real" stroke="#FF3B30" />
+                    <Line type="monotone" data={filteredAnalytics?.progressComparison?.ideal || []} dataKey="impact" name="Progresso Ideal" stroke="#86868B" strokeDasharray="5 5" />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -626,10 +621,10 @@ export default function Dashboard() {
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography variant="caption" sx={{ color: '#10b981', mr: 2 }}>
+                              <Typography variant="caption" sx={{ color: '#34C759', mr: 2 }}>
                                 {goal.signalCount} sinais
                               </Typography>
-                              <Typography variant="caption" sx={{ color: '#ef4444', mr: 2 }}>
+                              <Typography variant="caption" sx={{ color: '#FF3B30', mr: 2 }}>
                                 {goal.noiseCount} ruídos
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -638,7 +633,7 @@ export default function Dashboard() {
                             </Box>
                           </Box>
                           <Box sx={{ textAlign: 'right' }}>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#10b981' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#34C759' }}>
                               {goal.signalPercentage}%
                             </Typography>
                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>

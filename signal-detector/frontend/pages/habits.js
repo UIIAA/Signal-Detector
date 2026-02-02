@@ -191,10 +191,10 @@ export default function Habits() {
 
   const getHabitTypeColor = (type) => {
     switch (type) {
-      case 'build': return '#10b981';
-      case 'break': return '#ef4444';
-      case 'maintain': return '#3b82f6';
-      default: return '#6366f1';
+      case 'build': return '#34C759';
+      case 'break': return '#FF3B30';
+      case 'maintain': return '#1D1D1F';
+      default: return '#1D1D1F';
     }
   };
 
@@ -237,9 +237,9 @@ export default function Habits() {
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
             sx={{
-              background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+              backgroundColor: '#FF3B30',
               '&:hover': {
-                background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+                backgroundColor: '#C4291F'
               }
             }}
           >
@@ -308,7 +308,7 @@ export default function Habits() {
                           Streak Atual
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <FireIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
+                          <FireIcon sx={{ color: '#FF3B30', fontSize: 20 }} />
                           <Typography variant="h6" sx={{ fontWeight: 600 }}>
                             {habit.current_streak || 0}
                           </Typography>

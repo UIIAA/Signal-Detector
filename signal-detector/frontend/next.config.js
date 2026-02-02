@@ -8,8 +8,6 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // In the browser, we want to externalize certain native packages
-      // since they can't be bundled in the frontend environment
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -17,17 +15,12 @@ const nextConfig = {
         tls: false,
       };
     }
-    // Only exclude native modules in client builds
-    if (!isServer) {
-      if (!config.externals) {
-        config.externals = {};
-      }
-      config.externals = {
-        ...config.externals,
-        'pg': 'commonjs pg',
-        'sqlite3': 'commonjs sqlite3',
-      };
-    }
+    // Externalize native modules for both client and server builds
+    // This prevents webpack from trying to bundle pg/sqlite3 from ../shared/
+    config.externals = [
+      ...(Array.isArray(config.externals) ? config.externals : config.externals ? [config.externals] : []),
+      { 'pg': 'commonjs pg', 'sqlite3': 'commonjs sqlite3' },
+    ];
     return config;
   },
   async headers() {
