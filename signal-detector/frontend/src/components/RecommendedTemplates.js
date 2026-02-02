@@ -49,16 +49,7 @@ export default function RecommendedTemplates({ userId, limit = 5 }) {
   };
 
   const getCategoryColor = (category) => {
-    const colors = {
-      'Career': '#3b82f6',
-      'Learning': '#8b5cf6',
-      'Health': '#10b981',
-      'Relationships': '#ec4899',
-      'Finance': '#f59e0b',
-      'Personal Growth': '#06b6d4',
-      'Side Project': '#6366f1'
-    };
-    return colors[category] || '#6b7280';
+    return '#1D1D1F';
   };
 
   if (loading) {
@@ -85,7 +76,7 @@ export default function RecommendedTemplates({ userId, limit = 5 }) {
     <Card>
       <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <TrendingUpIcon sx={{ color: '#10b981', mr: 1 }} />
+          <TrendingUpIcon sx={{ color: '#FF3B30', mr: 1 }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Templates de Alta Alavancagem
           </Typography>
@@ -117,8 +108,8 @@ export default function RecommendedTemplates({ userId, limit = 5 }) {
                       size="small"
                       sx={{
                         ml: 1,
-                        backgroundColor: '#10b98120',
-                        color: '#10b981',
+                        backgroundColor: '#FF3B3020',
+                        color: '#FF3B30',
                         fontWeight: 600,
                         fontSize: '0.7rem'
                       }}
@@ -152,8 +143,8 @@ export default function RecommendedTemplates({ userId, limit = 5 }) {
                 size="small"
                 sx={{
                   ml: 1,
-                  color: '#10b981',
-                  '&:hover': { backgroundColor: '#10b98120' }
+                  color: '#FF3B30',
+                  '&:hover': { backgroundColor: '#FF3B3020' }
                 }}
                 title="Usar este template"
               >

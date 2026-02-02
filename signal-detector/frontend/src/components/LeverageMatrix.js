@@ -42,10 +42,10 @@ const LeverageMatrix = ({ activities }) => {
               margin={{ top: 20, right: 20, bottom: 40, left: 20 }}
             >
               {/* Quadrant Backgrounds */}
-              <ReferenceArea x1={0} x2={5.5} y1={5.5} y2={10.5} fill="#10b981" fillOpacity={0.1} label={{ value: 'Alta Alavancagem', position: 'insideTopLeft', fill: '#059669', fontSize: 12 }} />
-              <ReferenceArea x1={5.5} x2={10.5} y1={5.5} y2={10.5} fill="#3b82f6" fillOpacity={0.1} label={{ value: 'Projetos Estratégicos', position: 'insideTopRight', fill: '#2563eb', fontSize: 12 }} />
-              <ReferenceArea x1={0} x2={5.5} y1={0} y2={5.5} fill="#f59e0b" fillOpacity={0.1} label={{ value: 'Distrações', position: 'insideBottomLeft', fill: '#d97706', fontSize: 12 }} />
-              <ReferenceArea x1={5.5} x2={10.5} y1={0} y2={5.5} fill="#ef4444" fillOpacity={0.1} label={{ value: 'Drenos de Energia', position: 'insideBottomRight', fill: '#dc2626', fontSize: 12 }} />
+              <ReferenceArea x1={0} x2={5.5} y1={5.5} y2={10.5} fill="#34C759" fillOpacity={0.1} label={{ value: 'Alta Alavancagem', position: 'insideTopLeft', fill: '#34C759', fontSize: 12 }} />
+              <ReferenceArea x1={5.5} x2={10.5} y1={5.5} y2={10.5} fill="#1D1D1F" fillOpacity={0.1} label={{ value: 'Projetos Estratégicos', position: 'insideTopRight', fill: '#1D1D1F', fontSize: 12 }} />
+              <ReferenceArea x1={0} x2={5.5} y1={0} y2={5.5} fill="#86868B" fillOpacity={0.1} label={{ value: 'Distrações', position: 'insideBottomLeft', fill: '#86868B', fontSize: 12 }} />
+              <ReferenceArea x1={5.5} x2={10.5} y1={0} y2={5.5} fill="#FF3B30" fillOpacity={0.1} label={{ value: 'Drenos de Energia', position: 'insideBottomRight', fill: '#FF3B30', fontSize: 12 }} />
 
               <CartesianGrid strokeDasharray="3 3" />
               
@@ -83,7 +83,7 @@ const LeverageMatrix = ({ activities }) => {
               
               <Legend verticalAlign="top" height={36}/>
 
-              <Scatter name="Atividades" data={data} fill="#6366f1" shape="circle" />
+              <Scatter name="Atividades" data={data} fill="#FF3B30" shape="circle" />
 
             </ScatterChart>
           </ResponsiveContainer>

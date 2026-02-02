@@ -87,10 +87,10 @@ export default function IdealPathTimeline({
 
   const getLeverageColor = (impact, effort) => {
     const score = (impact / effort) * 10;
-    if (score >= 30) return '#10b981';
-    if (score >= 20) return '#3b82f6';
-    if (score >= 10) return '#f59e0b';
-    return '#ef4444';
+    if (score >= 30) return '#34C759';
+    if (score >= 20) return '#1D1D1F';
+    if (score >= 10) return '#86868B';
+    return '#FF3B30';
   };
 
   // Ordenar atividades por order

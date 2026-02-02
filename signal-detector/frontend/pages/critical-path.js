@@ -162,10 +162,10 @@ export default function CriticalPath() {
 
   const getGoalTypeColor = (type) => {
     switch (type) {
-      case 'short': return '#10b981';
-      case 'medium': return '#f59e0b';
-      case 'long': return '#a855f7';
-      default: return '#60a5fa';
+      case 'short': return '#1D1D1F';
+      case 'medium': return '#1D1D1F';
+      case 'long': return '#1D1D1F';
+      default: return '#1D1D1F';
     }
   };
 

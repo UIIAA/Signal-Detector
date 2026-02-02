@@ -136,7 +136,7 @@ export default function ProgressComparisonChart({
             <Area
               type="monotone"
               dataKey="ideal"
-              fill="rgba(59, 130, 246, 0.1)"
+              fill="rgba(134, 134, 139, 0.1)"
               stroke="none"
             />
 
@@ -144,10 +144,11 @@ export default function ProgressComparisonChart({
             <Line
               type="monotone"
               dataKey="ideal"
-              stroke="#3b82f6"
+              stroke="#86868B"
               strokeWidth={2}
+              strokeDasharray="5 5"
               name="Rota Ideal"
-              dot={{ fill: '#3b82f6', r: 4 }}
+              dot={{ fill: '#86868B', r: 4 }}
               activeDot={{ r: 6 }}
             />
 
@@ -155,19 +156,19 @@ export default function ProgressComparisonChart({
             <Line
               type="monotone"
               dataKey="actual"
-              stroke="#10b981"
+              stroke="#FF3B30"
               strokeWidth={3}
               name="Progresso Real"
-              dot={{ fill: '#10b981', r: 5 }}
+              dot={{ fill: '#FF3B30', r: 5 }}
               activeDot={{ r: 7 }}
             />
 
             {/* Linha de referência do momento atual */}
             <ReferenceLine
               x={new Date().toISOString().split('T')[0]}
-              stroke="#ef4444"
+              stroke="#FF3B30"
               strokeDasharray="3 3"
-              label={{ value: 'Hoje', position: 'top', fill: '#ef4444' }}
+              label={{ value: 'Hoje', position: 'top', fill: '#FF3B30' }}
             />
           </ComposedChart>
         </ResponsiveContainer>

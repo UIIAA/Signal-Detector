@@ -64,10 +64,10 @@ export default function EfficiencyRankingCard({ userId }) {
   };
 
   const getEfficiencyColor = (efficiency) => {
-    if (efficiency >= 15) return '#10b981';
-    if (efficiency >= 10) return '#3b82f6';
-    if (efficiency >= 5) return '#f59e0b';
-    return '#ef4444';
+    if (efficiency >= 15) return '#34C759';
+    if (efficiency >= 10) return '#1D1D1F';
+    if (efficiency >= 5) return '#86868B';
+    return '#FF3B30';
   };
 
   const getMedalEmoji = (rank) => {
@@ -256,22 +256,22 @@ export default function EfficiencyRankingCard({ userId }) {
                   <Chip
                     label={`Excelente (≥15): ${data.stats.distribution.excellent}`}
                     size="small"
-                    sx={{ bgcolor: '#10b981', color: 'white' }}
+                    sx={{ bgcolor: '#34C759', color: 'white' }}
                   />
                   <Chip
                     label={`Boa (10-15): ${data.stats.distribution.good}`}
                     size="small"
-                    sx={{ bgcolor: '#3b82f6', color: 'white' }}
+                    sx={{ bgcolor: '#1D1D1F', color: 'white' }}
                   />
                   <Chip
                     label={`Moderada (5-10): ${data.stats.distribution.moderate}`}
                     size="small"
-                    sx={{ bgcolor: '#f59e0b', color: 'white' }}
+                    sx={{ bgcolor: '#86868B', color: 'white' }}
                   />
                   <Chip
                     label={`Baixa (<5): ${data.stats.distribution.low}`}
                     size="small"
-                    sx={{ bgcolor: '#ef4444', color: 'white' }}
+                    sx={{ bgcolor: '#FF3B30', color: 'white' }}
                   />
                 </Box>
 

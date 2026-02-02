@@ -39,10 +39,10 @@ export default function HabitTracker({ habits = [], onCheckIn, onAddHabit }) {
   }, []);
 
   const getStreakColor = (streak) => {
-    if (streak >= 30) return '#10b981'; // green
-    if (streak >= 14) return '#3b82f6'; // blue
-    if (streak >= 7) return '#f59e0b'; // amber
-    return '#6b7280'; // gray
+    if (streak >= 30) return '#34C759';
+    if (streak >= 14) return '#1D1D1F';
+    if (streak >= 7) return '#86868B';
+    return '#AEAEB2';
   };
 
   return (

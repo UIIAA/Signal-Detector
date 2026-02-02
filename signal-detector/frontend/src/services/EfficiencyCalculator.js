@@ -45,28 +45,28 @@ export class EfficiencyCalculator {
       return {
         level: 'excellent',
         label: 'Excelente',
-        color: '#10b981', // green-500
+        color: '#34C759',
         description: 'Alta alavancagem - priorize atividades assim!'
       };
     } else if (efficiencyScore >= 10) {
       return {
         level: 'good',
         label: 'Boa',
-        color: '#3b82f6', // blue-500
+        color: '#1D1D1F',
         description: 'Boa eficiência - atividade produtiva'
       };
     } else if (efficiencyScore >= 5) {
       return {
         level: 'moderate',
         label: 'Moderada',
-        color: '#f59e0b', // amber-500
+        color: '#86868B',
         description: 'Eficiência moderada - pode melhorar'
       };
     } else {
       return {
         level: 'low',
         label: 'Baixa',
-        color: '#ef4444', // red-500
+        color: '#FF3B30',
         description: 'Baixa eficiência - considere alternativas'
       };
     }
