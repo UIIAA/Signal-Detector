@@ -16,8 +16,3 @@ export const LazyKanbanBoard = dynamic(
   () => import('../components/KanbanBoard'),
   { loading: LoadingFallback, ssr: false }
 );
-
-export const LazyTimeBlockScheduler = dynamic(
-  () => import('../components/TimeBlockScheduler'),
-  { loading: LoadingFallback, ssr: false }
-);

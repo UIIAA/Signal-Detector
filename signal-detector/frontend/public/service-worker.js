@@ -5,7 +5,6 @@ self.addEventListener('install', (event) => {
         '/',
         '/index.js',
         '/dashboard.js',
-        '/record.js',
       ]);
     })
   );
