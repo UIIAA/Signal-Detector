@@ -241,7 +241,13 @@ const KanbanBoard = () => {
 
   const progress = stats.total > 0 ? (stats.done / stats.total) * 100 : 0;
 
-  const projectColors = theme.palette.projects;
+  const projectColors = theme.palette.projects || {
+    PESSOAL: { main: '#86868B', text: '#1D1D1F' },
+    DEFENZ: { main: '#0A84FF', text: '#1D1D1F' },
+    CONNECT: { main: '#30D158', text: '#1D1D1F' },
+    GRAFONO: { main: '#FF9F0A', text: '#1D1D1F' },
+    PEC: { main: '#BF5AF2', text: '#1D1D1F' }
+  };
 
   if (loading) {
     return (
@@ -306,21 +312,21 @@ const KanbanBoard = () => {
         <Card sx={{ borderRadius: 2 }}>
           <CardContent sx={{ textAlign: 'center', py: 2 }}>
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'ruido.main' }} />
-              <TrendingDown sx={{ color: 'ruido.main', fontSize: 20 }} />
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#FF3B30' }} />
+              <TrendingDown sx={{ color: '#FF3B30', fontSize: 20 }} />
               <Typography variant="body2" color="text.secondary">RUIDO</Typography>
             </Stack>
-            <Typography variant="h4" fontWeight="bold" color="ruido.main">{stats.ruido}</Typography>
+            <Typography variant="h4" fontWeight="bold" color="#FF3B30">{stats.ruido}</Typography>
           </CardContent>
         </Card>
         <Card sx={{ borderRadius: 2 }}>
           <CardContent sx={{ textAlign: 'center', py: 2 }}>
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'accent.main' }} />
-              <LocalFireDepartment sx={{ color: 'accent.main', fontSize: 20 }} />
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#FF9F0A' }} />
+              <LocalFireDepartment sx={{ color: '#FF9F0A', fontSize: 20 }} />
               <Typography variant="body2" color="text.secondary">Receita</Typography>
             </Stack>
-            <Typography variant="h4" fontWeight="bold" color="accent.main">{stats.receita}</Typography>
+            <Typography variant="h4" fontWeight="bold" color="#FF9F0A">{stats.receita}</Typography>
           </CardContent>
         </Card>
       </Box>
@@ -375,7 +381,7 @@ const KanbanBoard = () => {
             control={<Switch checked={filterReceita} onChange={(e) => setFilterReceita(e.target.checked)} />}
             label={
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <LocalFireDepartment sx={{ color: filterReceita ? 'accent.main' : 'inherit', fontSize: 18 }} />
+                <LocalFireDepartment sx={{ color: filterReceita ? '#FF9F0A' : 'inherit', fontSize: 18 }} />
                 <Typography variant="body2">So Receita</Typography>
               </Stack>
             }
@@ -444,7 +450,7 @@ const KanbanBoard = () => {
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             {task.gera_receita && (
                               <Tooltip title="Gera Receita">
-                                <LocalFireDepartment sx={{ color: 'accent.main', fontSize: 18 }} />
+                                <LocalFireDepartment sx={{ color: '#FF9F0A', fontSize: 18 }} />
                               </Tooltip>
                             )}
                             <Tooltip title={`${task.classificacao} (Score: ${task.signal_score})`}>
@@ -452,7 +458,7 @@ const KanbanBoard = () => {
                                 label={task.classificacao || 'NEUTRO'}
                                 size="small"
                                 sx={{
-                                  bgcolor: task.classificacao === 'SINAL' ? 'signal.main' : task.classificacao === 'RUIDO' ? 'ruido.main' : 'neutral.main',
+                                  bgcolor: task.classificacao === 'SINAL' ? 'signal.main' : task.classificacao === 'RUIDO' ? '#FF3B30' : 'neutral.main',
                                   color: 'white',
                                   fontSize: '0.65rem',
                                   height: 18,
