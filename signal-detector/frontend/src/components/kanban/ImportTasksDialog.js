@@ -320,13 +320,13 @@ const ImportTasksDialog = ({ open, onClose, onImportComplete, fetchWithAuth }) =
     setImporting(true);
     setError(null);
     let successCount = 0;
+    const createdTaskIds = [];
 
     try {
       for (const task of tasksToImport) {
         try {
-          await fetchWithAuth('/api/kanban', {
+          const res = await fetchWithAuth('/api/kanban', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               titulo: task.titulo,
               descricao: task.descricao || '',
@@ -341,9 +341,31 @@ const ImportTasksDialog = ({ open, onClose, onImportComplete, fetchWithAuth }) =
               esforco: 5
             })
           });
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            console.error(`Failed to import task: ${task.titulo}`, errData);
+            continue;
+          }
+          const data = await res.json();
           successCount++;
+          if (data.data?.id) createdTaskIds.push(data.data.id);
         } catch (err) {
           console.error(`Failed to import task: ${task.titulo}`, err);
+        }
+      }
+
+      // Auto-classify with AI after import
+      if (createdTaskIds.length > 0) {
+        for (const taskId of createdTaskIds) {
+          try {
+            await fetchWithAuth('/api/kanban/classify', {
+              method: 'POST',
+              body: JSON.stringify({ taskId, useAI: true })
+            });
+          } catch (err) {
+            // AI classification is best-effort, don't block import
+            console.error('AI classify failed for task:', taskId, err);
+          }
         }
       }
 
@@ -351,7 +373,7 @@ const ImportTasksDialog = ({ open, onClose, onImportComplete, fetchWithAuth }) =
         onImportComplete(successCount);
         handleClose();
       } else {
-        setError('Nenhuma tarefa foi importada. Verifique os dados.');
+        setError('Nenhuma tarefa foi importada. Verifique os dados e tente novamente.');
       }
     } catch (err) {
       setError('Erro ao importar tarefas');
