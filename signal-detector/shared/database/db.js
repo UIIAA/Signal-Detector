@@ -116,13 +116,30 @@ async function getDb() {
   return { db, dbType };
 }
 
+function postgresqlToSqlite(sql) {
+  let converted = sql
+    .replace(/\$\d+/g, '?')
+    .replace(/NOW\(\)::date/g, "date('now')")
+    .replace(/NOW\(\)\s*-\s*INTERVAL\s*'(\d+)\s*days?'/gi, "datetime('now', '-$1 days')")
+    .replace(/NOW\(\)\s*-\s*INTERVAL\s*'(\d+)\s*hours?'/gi, "datetime('now', '-$1 hours')")
+    .replace(/NOW\(\)/g, "datetime('now')")
+    .replace(/CURRENT_DATE/g, "date('now')")
+    .replace(/GREATEST\(([^,]+),\s*([^)]+)\)/g, 'MAX($1, $2)')
+    .replace(/LEAST\(([^,]+),\s*([^)]+)\)/g, 'MIN($1, $2)')
+    .replace(/\bRETURNING\s+.*/gi, '')
+    .replace(/\btrue\b/gi, '1')
+    .replace(/\bfalse\b/gi, '0')
+    .replace(/ON CONFLICT\s*\([^)]+\)\s*DO UPDATE SET/gi, (match) => match);
+  return converted;
+}
+
 async function query(sql, params = []) {
   const { db, dbType } = await getDb();
 
   if (dbType === 'postgres') {
     return db.query(sql, params);
-  } else { // This block will now only be executed in development
-    const sqliteSql = sql.replace(/\$\d+/g, '?');
+  } else { // SQLite fallback (development only)
+    const sqliteSql = postgresqlToSqlite(sql);
     return new Promise((resolve, reject) => {
       if (sqliteSql.trim().toUpperCase().startsWith('SELECT')) {
         db.all(sqliteSql, params, (err, rows) => {

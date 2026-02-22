@@ -4,7 +4,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}/api`
-      : 'http://localhost:4000'
+      : '/api'
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -50,7 +50,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:4000 https:;"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:;"
           },
           {
             key: 'Permissions-Policy',
@@ -61,26 +61,7 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    if (process.env.NODE_ENV === 'production') {
-      return [];
-    }
-
-    // In development, only proxy specific routes to the external backend
-    // Exclude routes that should be handled by Next.js API routes
-    return [
-      {
-        source: '/api/analyze/:path*',
-        destination: 'http://localhost:4000/analyze/:path*'
-      },
-      {
-        source: '/api/activities/:path*',
-        destination: 'http://localhost:4000/activities/:path*'
-      },
-      {
-        source: '/api/patterns/:path*',
-        destination: 'http://localhost:4000/patterns/:path*'
-      }
-    ];
+    return [];
   }
 };
 

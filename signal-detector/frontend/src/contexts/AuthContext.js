@@ -64,22 +64,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchWithAuth = async (url, options = {}) => {
-    // Get the session token for authenticated requests
-    const sessionResponse = await signIn('credentials', { redirect: false });
-    
     const headers = {
       ...options.headers,
       'Content-Type': 'application/json',
     };
 
-    // Add authorization header if we have a session
-    if (session) {
-      // NextAuth automatically handles tokens, but we can still manually add headers if needed
-      // The session token should automatically be included via NextAuth cookies
-    }
-
-    const response = await fetch(url, { 
-      ...options, 
+    const response = await fetch(url, {
+      ...options,
       headers,
     });
 

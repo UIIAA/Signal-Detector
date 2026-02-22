@@ -1,4 +1,5 @@
 import { query } from '../../../shared/database/db';
+import crypto from 'crypto';
 const SignalClassifier = require('../../src/services/SignalClassifier');
 
 export default async function handler(req, res) {
@@ -83,10 +84,12 @@ export default async function handler(req, res) {
       }
     }
 
+    const activityId = crypto.randomBytes(16).toString('hex');
     await query(`INSERT INTO activities
       (id, user_id, description, duration_minutes, energy_before, energy_after, signal_score, classification, confidence_score, reasoning, classification_method, transcription, goal_id, impact, effort)
-      VALUES (encode(gen_random_bytes(16), 'hex'), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
+        activityId,
         userId,
         activity.description,
         activity.duration,
@@ -114,7 +117,7 @@ export default async function handler(req, res) {
             AND g.is_active = true
             ORDER BY
               CASE WHEN g.id = $2 THEN 0 ELSE 1 END,
-              g.current_value / GREATEST(g.target_value, 1) ASC
+              g.current_value / (CASE WHEN g.target_value > 1 THEN g.target_value ELSE 1 END) ASC
             LIMIT 3
           `, [userId, activity.goalId]);
         connectedGoals = rows.map((goal, index) => ({

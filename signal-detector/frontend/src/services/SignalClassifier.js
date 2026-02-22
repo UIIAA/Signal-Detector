@@ -1,5 +1,4 @@
-// Frontend SignalClassifier - copied from services/signal-processor
-// This prevents build issues with external imports in Vercel
+// SignalClassifier - rule-based + AI activity classification
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
