@@ -1,5 +1,5 @@
 # Feature: Remover Accountability Engine (código morto)
-**Status:** Draft
+**Status:** Done
 **Prioridade:** P2
 **Data:** 2026-02-21
 
@@ -32,11 +32,11 @@ Remover o microserviço `services/accountability-engine/` que foi planejado mas 
 - Nenhuma funcionalidade do frontend será afetada
 
 ## Critérios de Aceite
-- [ ] Diretório `services/accountability-engine/` removido
-- [ ] Diretório `services/` removido (vazio)
-- [ ] Build passa sem erros
-- [ ] Nenhuma referência a accountability-engine no codebase
-- [ ] SPEC.md já documenta coaching PNL como "Parcial"
+- [x] Diretório `services/accountability-engine/` removido
+- [x] Diretório `services/` removido (vazio)
+- [x] Build passa sem erros
+- [x] Nenhuma referência a accountability-engine no codebase (apenas docs/archive)
+- [x] SPEC.md já documenta coaching PNL como "Parcial"
 
 ## Decisões Técnicas
 - Não preservar código — a lógica do PNLCoach é simples o suficiente para reimplementar como API route quando necessário
