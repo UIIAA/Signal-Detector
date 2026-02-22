@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }) => {
     const headers = {
       ...options.headers,
       'Content-Type': 'application/json',
+      ...(user?.id && { 'x-user-id': user.id }),
     };
 
     const response = await fetch(url, {
