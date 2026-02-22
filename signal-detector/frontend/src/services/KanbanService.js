@@ -38,7 +38,8 @@ export class KanbanService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+      return result.data || result;
     } catch (error) {
       console.error('Error fetching tasks:', error);
       throw error;
@@ -66,10 +67,11 @@ export class KanbanService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to create task');
+        throw new Error(error.error?.message || error.error || 'Failed to create task');
       }
 
-      return await response.json();
+      const result = await response.json();
+      return result.data || result;
     } catch (error) {
       console.error('Error creating task:', error);
       throw error;
@@ -98,10 +100,11 @@ export class KanbanService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to update task');
+        throw new Error(error.error?.message || error.error || 'Failed to update task');
       }
 
-      return await response.json();
+      const result = await response.json();
+      return result.data || result;
     } catch (error) {
       console.error('Error updating task:', error);
       throw error;
@@ -125,10 +128,11 @@ export class KanbanService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to delete task');
+        throw new Error(error.error?.message || error.error || 'Failed to delete task');
       }
 
-      return await response.json();
+      const result = await response.json();
+      return result.data || result;
     } catch (error) {
       console.error('Error deleting task:', error);
       throw error;
@@ -157,10 +161,11 @@ export class KanbanService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to classify task');
+        throw new Error(error.error?.message || error.error || 'Failed to classify task');
       }
 
-      return await response.json();
+      const result = await response.json();
+      return result.data || result;
     } catch (error) {
       console.error('Error classifying task:', error);
       throw error;
