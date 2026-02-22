@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { query } from '../../../shared/database/db';
 
 export default NextAuth({
   providers: [
@@ -10,41 +11,37 @@ export default NextAuth({
         name: { label: 'Name', type: 'text', placeholder: 'Your name' }
       },
       async authorize(credentials) {
-        // In a real app, you would verify the credentials against your database
-        // For now, we'll simulate the existing behavior but with proper JWT
-        
         if (!credentials?.email) {
           throw new Error('Email is required');
         }
 
-        // Simulate the backend API call to register/login user
         try {
-          const response = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: credentials.email,
-              name: credentials.name || credentials.email.split('@')[0],
-              email: credentials.email
-            })
-          });
+          const { rows: existingUsers } = await query(
+            'SELECT id, name, email FROM users WHERE email = $1',
+            [credentials.email]
+          );
 
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Authentication failed');
+          let user;
+          if (existingUsers.length > 0) {
+            user = existingUsers[0];
+          } else {
+            const userId = credentials.email;
+            const name = credentials.name || credentials.email.split('@')[0];
+            const { rows: newUsers } = await query(
+              'INSERT INTO users (id, name, email, created_at) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
+              [userId, name, credentials.email, new Date()]
+            );
+            user = newUsers[0];
           }
 
-          const userData = await response.json();
-          
-          // Return user data for the session
           return {
-            id: userData.user.id,
-            email: userData.user.email,
-            name: userData.user.name,
-            ...userData.user
+            id: user.id,
+            email: user.email,
+            name: user.name,
           };
         } catch (error) {
-          throw new Error(error.message || 'Authentication failed');
+          console.error('NextAuth authorize error:', error.message);
+          throw new Error('Authentication failed');
         }
       }
     })
